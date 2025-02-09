@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '17'  # Set up JDK 17
-          distribution: 'adoptopenjdk'  # Use AdoptOpenJDK (or you can use OpenJDK)
+          distribution: 'temurin'  # Use Temurin (formerly AdoptOpenJDK)
 
       - name: Cache Maven dependencies
         uses: actions/cache@v2
