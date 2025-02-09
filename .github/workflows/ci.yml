@@ -3,10 +3,10 @@ name: Spring Boot CI Pipeline
 on:
   push:
     branches:
-      - main  # Trigger the workflow on push to the main branch
+      - master  # Trigger the workflow on push to the master branch
   pull_request:
     branches:
-      - main  # Trigger on pull request targeting the main branch
+      - master  # Trigger on pull request targeting the master branch
 
 jobs:
   build:
@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '17'  # Set up JDK 17
-          distribution: 'adoptopenjdk'  # Use AdoptOpenJDK (or you can use OpenJDK)
+          distribution: 'temurin'  # Use Temurin (formerly AdoptOpenJDK)
 
       - name: Cache Maven dependencies
         uses: actions/cache@v2
