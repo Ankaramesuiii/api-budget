@@ -40,8 +40,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/manager/**").hasAnyRole(MANAGER.name(), SUPER_MANAGER.name())
-                        .requestMatchers(HttpMethod.GET,"/api/manager/**").hasAnyAuthority(MANAGER_READ.name(), SUPER_MANAGER_READ.name())
+                        .requestMatchers("/api/manager/**").hasAuthority("MANAGER") // Ensure it uses ROLE_ prefix
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

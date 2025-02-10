@@ -27,11 +27,34 @@ public class AuthService {
     }
 
     public void register(Users user) {
-        logger.info("Registering user: {}", user.getUsername());
-        logger.info("roles user: {}", user.getRole());
+        logger.info("Registering user: {}", user.getEmail());
+
+        // Validation des entrées
+        if (user.getEmail() == null || user.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be null or empty.");
+        }
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be null or empty.");
+        }
+
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email already taken.");
+        }
+
+        logger.info("Assigning roles for user: {}", user.getRole());
+
+        // Encodage et sauvegarde
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+            logger.info("User {} registered successfully", user.getEmail());
+        } catch (Exception e) {
+            logger.error("Failed to register user: {}", user.getEmail(), e);
+            throw new RuntimeException("Registration failed");
+        }
     }
+
+
 
     public String login(Users user) {
         System.out.println(user);

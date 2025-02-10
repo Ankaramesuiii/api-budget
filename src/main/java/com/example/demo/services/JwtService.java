@@ -5,19 +5,22 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "b8f69093c1db7d70dd0825d8b2ff7890380006933e5d91715b59cc6eaee8ea55356c66ff2d4744ae97afd00e52df2db0f89250ecef7d53c5140371f00d0e195b0e3cb1c3dde48d13dffd32280c9142342d558959344cda8f912ea6eb0c8fb52d52dfba0f76ffa5e00a324d04f93542b79b35ecfc53df65f168432612cd56696e031cb9998157e6492c91eba9d242bb3bf5ad9c525bb4fb3e9439b071cdd0957281b9d7775e4ccd20fda16eb75d4f5fa0afede4d9f3e224cf4f4f9187eb3d75457e1ba2bcf504548b499f8f8d975bd71a50c9a35c73ef64c219896a85606e4099eb05ba1ccbb457828caa50a08ec90d0e0aaa118b14259aa4ccef5dc37f8b99d2";
+    private static final String SECRET_KEY = "210609cac4bc95128368da94425a9a1bd2058c3e235ec571772560294691b693581a9e32191647addacf88b4326c2d4cf60bca44f027bd73ce64d191c86b76a283dc7d8878cd2125980633bf46f39d128dfe8124d7229b89cbdfb44f7a2a98ca152fe18d22f246b32627306e1e62d4250a78c036cc470beac22b68167ea64ee63e29655d5e301a1571fcf9ff32c61bc09f5087e2713cf1bd308c9f8fe65cbd609c63234143c17db1f2cf9208ca7dbff4c3f9a41feae3cf82643f2428bba645ce1c41e3817eb21bac9ceae51a26c6e7098f7a3058b8313be4caf4538ce994f979314387d42734dd7e62b49c81b5c4ef2ecf9b170a2de005ac51144951f693fe83";
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -29,8 +32,18 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("roles", userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()));
+        return generateToken(extraClaims, userDetails);
     }
+
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("roles", List.class);
+    }
+
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
