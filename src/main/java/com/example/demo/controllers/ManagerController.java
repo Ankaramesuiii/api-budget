@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/manager")
-@PreAuthorize("hasRole('ROLE_MANAGER')")
+@PreAuthorize("hasAnyRole('MANAGER', 'SUPER_MANAGER')")
 public class ManagerController {
     @GetMapping("/dashboard")
     public String dashboard() {
