@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String email;
 
-        if(request.getRequestURI().contains("/api/auth/")) {
+        if (request.getRequestURI().contains("/api/auth/")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -83,6 +83,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 System.out.println("Authenticated user: " + authentication.getName());
                 System.out.println("Authorities: " + authentication.getAuthorities());
+
+                if (request.getRequestURI().contains("/api/manager/")) {
+                    boolean hasManagerRole = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MANAGER"));
+                    boolean hasSuperManagerRole = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_SUPER_MANAGER"));
+
+                    // Allow access only if the user has either MANAGER or SUPER_MANAGER role
+                    if (!hasManagerRole && !hasSuperManagerRole) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN); // Send 403 Forbidden
+                        response.getWriter().write("Forbidden: Insufficient permissions");
+                        response.getWriter().flush();
+                        return;
+                    }
+                }
+
+                if (request.getRequestURI().contains("/api/super-manager/") &&
+                        !authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_SUPER_MANAGER"))) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN); // Send 403 Forbidden
+                    response.getWriter().write("Forbidden: Insufficient permissions");
+                    response.getWriter().flush();
+                    return;
+                }
+
+                if (request.getRequestURI().contains("/api/team-member/") &&
+                        !authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEAM_MEMBER"))) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN); // Send 403 Forbidden
+                    response.getWriter().write("Forbidden: Insufficient permissions");
+                    response.getWriter().flush();
+                    return;
+                }
+
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // Token is invalid
                 response.getWriter().write("Unauthorized: Invalid token");
