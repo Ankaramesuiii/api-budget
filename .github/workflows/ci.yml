@@ -1,61 +1,52 @@
-name: SQL Server 2022 with sqlpackage on Ubuntu
+name: test-and-build
 
 on:
   push:
     branches:
-      - master  # Trigger on push to master branch
+      - main
 
 jobs:
   test-everywhere:
     name: Test Action on all platforms
-    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
-
-    services:
-      sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest  # SQL Server 2022 Docker image
-        options: >-
-          --env 'ACCEPT_EULA=Y' 
-          --env 'SA_PASSWORD=dbatools.I0'  # Strong password for SA user
-          --publish 1433:1433  # Expose SQL Server port
-        ports:
-          - 1433:1433
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
-      - uses: actions/checkout@v3  # Checkout the repository
+      - uses: actions/checkout@v3
 
-      - name: Install sqlpackage and SQL Server Client
-        run: |
-          # Install sqlcmd and sqlpackage
-          sudo apt-get update
-          sudo apt-get install -y curl
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools
-          sudo apt-get install -y sqlpackage  # Install sqlpackage
-
-      - name: Run SQL command using sqlcmd
-        run: |
-          sqlcmd -S localhost -U sa -P dbatools.I0 -d tempdb -Q "SELECT @@version;" -C
-          # You can add more queries as needed
-
-      # Optional: Run tests after building (if your project has tests)
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
+      - name: Run the action
+        uses: potatoqualitee/mssqlsuite@v1.8
         with:
-          java-version: '17'  # Set up JDK 17
-          distribution: 'temurin'  # Use Temurin (formerly AdoptOpenJDK)
+          install: sqlengine, sqlclient, sqlpackage, localdb, fulltext
+          version: 2019
+          sa-password: c0MplicatedP@ssword
+          show-log: true
+          collation: Latin1_General_BIN
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v2
+      - name: Run sqlcmd
+        run: sqlcmd -S localhost -U sa -P c0MplicatedP@ssword -d tempdb -Q "SELECT @@version;" -C
+
+  build-deploy:
+    name: Build and Deploy Spring API
+    runs-on: ubuntu-20.04
+    needs: test-everywhere # This ensures the build/deploy happens after the tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
         with:
-          path: ~/.m2/repository  # Cache the Maven repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          distribution: 'corretto'
+          java-version: 17
 
-      - name: Build with Maven
-        run: mvn clean install -DskipTests=true  # Clean and install dependencies (skip tests during this step)
+      - name: Run unit tests
+        run: mvn -B test --file pom.xml
 
-      - name: Run tests with Maven
-        run: mvn test  # Run unit tests
+      # You can add further deployment steps below depending on your setup.
+      # Example:
+      # - name: Deploy to server
+      #   run: ./deploy_script.sh
