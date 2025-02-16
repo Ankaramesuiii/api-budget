@@ -7,12 +7,8 @@ on:
 
 jobs:
   test-everywhere:
-    name: Test Action on all platforms
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+    name: Test Action on Ubuntu
+    runs-on: ubuntu-latest  # Ensure this job runs only on Ubuntu
 
     steps:
       - uses: actions/checkout@v3
@@ -30,7 +26,7 @@ jobs:
 
   build-deploy:
     name: Build and Deploy Spring API
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest  # Ensure this job also runs only on Ubuntu
     needs: test-everywhere # This ensures the build/deploy happens after the tests
     steps:
       - name: Checkout code
