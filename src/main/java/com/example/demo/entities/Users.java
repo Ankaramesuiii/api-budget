@@ -11,13 +11,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+
 @Entity
 @Table
-
-public class Users implements  UserDetails {
+@Inheritance(strategy = InheritanceType.JOINED)
+public class Users implements UserDetails {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String cuid;
@@ -37,29 +38,6 @@ public class Users implements  UserDetails {
     private String status;
 
     private String phone;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private SuperManager superManager;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Manager manager;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private TeamMember teamMember;
-
-    public Users() { }
-
-    public Users(Long id, String cuid, String firstName, String lastName, String email, String password, Role role, String status, String phone) {
-        this.id = id;
-        this.cuid = cuid;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.status = status;
-        this.phone = phone;
-    }
 
     public String getCuid() {
         return cuid;
@@ -121,37 +99,10 @@ public class Users implements  UserDetails {
         this.phone = phone;
     }
 
-    public SuperManager getSuperManager() {
-        return superManager;
-    }
-
-    public void setSuperManager(SuperManager superManager) {
-        this.superManager = superManager;
-    }
-
-    public Manager getManager() {
-        return manager;
-    }
-
-    public void setManager(Manager manager) {
-        this.manager = manager;
-    }
-
-    public TeamMember getTeamMember() {
-        return teamMember;
-    }
-
-    public void setTeamMember(TeamMember teamMember) {
-        this.teamMember = teamMember;
-    }
-
-
-
-
     @Override
     public String toString() {
         return "Users{" +
-                "id=" + id +
+                ", id='" + id + '\'' +
                 ", cuid='" + cuid + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
@@ -178,4 +129,19 @@ public class Users implements  UserDetails {
         return password;
     }
 
+
+    public Users(Long id, String cuid, String firstName, String lastName, String email, String password, Role role, String status, String phone) {
+        this.id = id;
+        this.cuid = cuid;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.status = status;
+        this.phone = phone;
+    }
+
+    public Users() {
+    }
 }

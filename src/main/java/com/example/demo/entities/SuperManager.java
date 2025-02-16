@@ -10,15 +10,7 @@ import java.util.List;
 @Getter
 @Entity
 @Table(name = "super_manager")
-public class SuperManager {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private Users user; // Links to the Users table for authentication
+public class SuperManager extends Users {
 
     @OneToOne
     @JoinColumn(name = "business_unit_id", nullable = false)
@@ -32,8 +24,7 @@ public class SuperManager {
 
     public SuperManager() { }
 
-    public SuperManager(Users user, BusinessUnit businessUnit) {
-        this.user = user;
+    public SuperManager(Users user,BusinessUnit businessUnit) {
         this.businessUnit = businessUnit;
     }
 }

@@ -64,7 +64,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
 
@@ -112,7 +111,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     response.getWriter().flush();
                     return;
                 }
-
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // Token is invalid
                 response.getWriter().write("Unauthorized: Invalid token");

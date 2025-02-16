@@ -17,6 +17,7 @@ public class ManagerController {
         // Get the connected user from SecurityContext
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.toString();  // Retrieve the username
+        System.out.println("username = " + username);
         return "Manager dashboard + " + username;
     }
 }

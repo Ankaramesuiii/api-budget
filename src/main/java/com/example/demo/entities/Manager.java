@@ -8,21 +8,13 @@ import lombok.Setter;
 @Getter
 @Entity
 @Table(name = "manager")
-public class Manager {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private Users user; // Links to the Users table for authentication
+public class Manager extends Users {
 
     @ManyToOne
     @JoinColumn(name = "super_manager_id", nullable = false)
     private SuperManager superManager; // Each Manager reports to a SuperManager
 
-    @OneToOne(mappedBy = "manager", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "manager", cascade = CascadeType.ALL)
     private Team team; // Each Manager manages one Team
 
     @ManyToOne
@@ -32,8 +24,7 @@ public class Manager {
     // Constructors
     public Manager() { }
 
-    public Manager(Users user, SuperManager superManager, Budget budget) {
-        this.user = user;
+    public Manager(SuperManager superManager, Budget budget) {
         this.superManager = superManager;
         this.budget = budget;
     }

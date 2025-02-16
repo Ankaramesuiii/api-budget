@@ -1,9 +1,15 @@
 package com.example.demo.services;
 
+import com.example.demo.entities.Manager;
+import com.example.demo.entities.SuperManager;
+import com.example.demo.entities.TeamMember;
 import com.example.demo.entities.Users;
 import com.example.demo.exceptions.InvalidInputException;
 import com.example.demo.exceptions.LoginFailedException;
 import com.example.demo.exceptions.UserAlreadyExistsException;
+import com.example.demo.repositories.ManagerRepository;
+import com.example.demo.repositories.SuperManagerRepository;
+import com.example.demo.repositories.TeamMemberRepository;
 import com.example.demo.repositories.UsersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +22,19 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UsersRepository userRepository;
+    private final ManagerRepository managerRepository;
+    private final SuperManagerRepository superManagerRepository;
+    private final TeamMemberRepository teamMemberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
-    public AuthService(UsersRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public AuthService(UsersRepository userRepository, ManagerRepository managerRepository, SuperManagerRepository superManagerRepository, TeamMemberRepository teamMemberRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
+        this.managerRepository = managerRepository;
+        this.superManagerRepository = superManagerRepository;
+        this.teamMemberRepository = teamMemberRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
@@ -31,7 +43,7 @@ public class AuthService {
     public void register(Users user) {
         logger.info("Registering user: {}", user.getEmail());
 
-        // Validate input
+        // Validation des champs
         if (user.getEmail() == null || user.getEmail().isEmpty()) {
             throw new InvalidInputException("Email cannot be null or empty.");
         }
@@ -39,15 +51,17 @@ public class AuthService {
             throw new InvalidInputException("Password cannot be null or empty.");
         }
 
-        // Check if email is already taken
+        // Vérifier si l'email existe déjà
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("Email already taken.");
         }
 
         logger.info("Assigning roles for user: {}", user.getRole());
 
-        // Encode password and save user
+        // Encoder le mot de passe
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Sauvegarder dans la bonne table selon le rôle
         try {
             userRepository.save(user);
             logger.info("User {} registered successfully", user.getEmail());
@@ -55,7 +69,34 @@ public class AuthService {
             logger.error("Failed to register user: {}", user.getEmail(), e);
             throw new RuntimeException("Registration failed due to an unexpected error.");
         }
+
+        /*
+        try {
+            switch (user.getRole()) {
+                case SUPER_MANAGER:
+                    SuperManager superManager = new SuperManager();
+
+                    superManagerRepository.save(superManager);
+                    break;
+                case MANAGER:
+                    Manager manager = new Manager();
+                    managerRepository.save(manager);
+                    break;
+                case TEAM_MEMBER:
+                    TeamMember teamMember = new TeamMember();
+                    teamMemberRepository.save(teamMember);
+                    break;
+                default:
+                    throw new RuntimeException("Invalid role provided.");
+            }
+            logger.info("User {} registered successfully", user.getEmail());
+        } catch (Exception e) {
+            logger.error("Failed to register user: {}", user.getEmail(), e);
+            throw new RuntimeException("Registration failed due to an unexpected error.");
+        }
+         */
     }
+
 
     public String login(Users user) {
         logger.info("Attempting login for user: {}", user.getUsername());
