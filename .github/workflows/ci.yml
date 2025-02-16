@@ -18,14 +18,14 @@ jobs:
         with:
           install: sqlengine, sqlclient, sqlpackage, localdb, fulltext
           version: 2019
-          sa-password: c0MplicatedP@ssword
+          sa-password: YourStrong!Passw0rd
           show-log: true
 
       - name: Run sqlcmd
-        run: sqlcmd -S localhost -U sa -P c0MplicatedP@ssword -d tempdb -Q "SELECT @@version;" -C
+        run: sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -d tempdb -Q "SELECT @@version;" -C
 
   build-deploy:
-    name: Build and Deploy Spring API
+    name: Build API
     runs-on: ubuntu-latest  # Ensure this job also runs only on Ubuntu
     needs: test-everywhere # This ensures the build/deploy happens after the tests
     steps:
