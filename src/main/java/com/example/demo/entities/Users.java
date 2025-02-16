@@ -47,6 +47,20 @@ public class Users implements  UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private TeamMember teamMember;
 
+    public Users() { }
+
+    public Users(Long id, String cuid, String firstName, String lastName, String email, String password, Role role, String status, String phone) {
+        this.id = id;
+        this.cuid = cuid;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.status = status;
+        this.phone = phone;
+    }
+
     public String getCuid() {
         return cuid;
     }
@@ -147,20 +161,6 @@ public class Users implements  UserDetails {
                 ", status='" + status + '\'' +
                 ", phone='" + phone + '\'' +
                 '}';
-    }
-
-    public Users() { }
-
-    public Users(Long id, String cuid, String firstName, String lastName, String email, String password, Role role, String status, String phone) {
-        this.id = id;
-        this.cuid = cuid;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.status = status;
-        this.phone = phone;
     }
 
     @Override
