@@ -22,9 +22,6 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UsersRepository userRepository;
-    private final ManagerRepository managerRepository;
-    private final SuperManagerRepository superManagerRepository;
-    private final TeamMemberRepository teamMemberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -32,9 +29,6 @@ public class AuthService {
 
     public AuthService(UsersRepository userRepository, ManagerRepository managerRepository, SuperManagerRepository superManagerRepository, TeamMemberRepository teamMemberRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
-        this.managerRepository = managerRepository;
-        this.superManagerRepository = superManagerRepository;
-        this.teamMemberRepository = teamMemberRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
