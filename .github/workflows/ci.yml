@@ -48,3 +48,6 @@ jobs:
 
       - name: Package with Maven
         run: mvn package -DskipTests=true
+
+      - name: View MSSQL container logs
+        run: docker logs mssql
