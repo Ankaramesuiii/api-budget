@@ -1,7 +1,8 @@
 package com.example.demo.configs;
 
 import com.example.demo.filters.JwtAuthenticationFilter;
-import com.example.demo.services.UserDetailsServiceImpl;
+import com.example.demo.services.auth.UserDetailsServiceImpl;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,11 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import static com.example.demo.enums.Permission.MANAGER_READ;
-import static com.example.demo.enums.Permission.SUPER_MANAGER_READ;
-import static com.example.demo.enums.Role.MANAGER;
-import static com.example.demo.enums.Role.SUPER_MANAGER;
 
 @Configuration
 @EnableWebSecurity
@@ -44,9 +40,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/manager/**").hasAuthority("MANAGER_READ") // Fine-grained permission
                         .requestMatchers("/api/super-manager/**").hasRole("SUPER_MANAGER") // SUPER_MANAGER role
                         .requestMatchers("/api/team-member/**").hasRole("TEAM_MEMBER") // TEAM_MEMBER role
+                        .requestMatchers("/api/training/import").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout") // Logout endpoint
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                        })
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

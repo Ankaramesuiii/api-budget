@@ -1,8 +1,6 @@
-package com.example.demo.services;
+package com.example.demo.services.auth;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,11 +21,20 @@ public class JwtService {
     private static final String SECRET_KEY = "210609cac4bc95128368da94425a9a1bd2058c3e235ec571772560294691b693581a9e32191647addacf88b4326c2d4cf60bca44f027bd73ce64d191c86b76a283dc7d8878cd2125980633bf46f39d128dfe8124d7229b89cbdfb44f7a2a98ca152fe18d22f246b32627306e1e62d4250a78c036cc470beac22b68167ea64ee63e29655d5e301a1571fcf9ff32c61bc09f5087e2713cf1bd308c9f8fe65cbd609c63234143c17db1f2cf9208ca7dbff4c3f9a41feae3cf82643f2428bba645ce1c41e3817eb21bac9ceae51a26c6e7098f7a3058b8313be4caf4538ce994f979314387d42734dd7e62b49c81b5c4ef2ecf9b170a2de005ac51144951f693fe83";
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        try {
+            return extractClaim(token, Claims::getSubject);
+        } catch (ExpiredJwtException e) {
+            throw new RuntimeException("Token expired at " + e.getClaims().getExpiration());
+        } catch (MalformedJwtException e) {
+            throw new RuntimeException("Invalid JWT format");
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("JWT token is missing or empty");
+        }
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
+        System.out.println("claims: " + claims);
         return claimsResolver.apply(claims);
     }
 

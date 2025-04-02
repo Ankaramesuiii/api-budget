@@ -7,6 +7,9 @@ public class ErrorResponse {
         this.message = message;
     }
 
+    public ErrorResponse(int value, String message, String description) {
+    }
+
     public String getMessage() {
         return message;
     }

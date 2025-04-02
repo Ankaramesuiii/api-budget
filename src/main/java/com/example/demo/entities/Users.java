@@ -23,9 +23,7 @@ public class Users implements UserDetails {
 
     private String cuid;
 
-    private String firstName;
-
-    private String lastName;
+    private String name;
 
     @Column(unique = true)
     private String email;
@@ -39,6 +37,14 @@ public class Users implements UserDetails {
 
     private String phone;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getCuid() {
         return cuid;
     }
@@ -47,20 +53,12 @@ public class Users implements UserDetails {
         this.cuid = cuid;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getName() {
+        return name;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setName(String firstName) {
+        this.name = firstName;
     }
 
     public String getEmail() {
@@ -104,8 +102,7 @@ public class Users implements UserDetails {
         return "Users{" +
                 ", id='" + id + '\'' +
                 ", cuid='" + cuid + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
+                ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", role='" + role + '\'' +
@@ -130,11 +127,10 @@ public class Users implements UserDetails {
     }
 
 
-    public Users(Long id, String cuid, String firstName, String lastName, String email, String password, Role role, String status, String phone) {
+    public Users(Long id, String cuid, String name, String email, String password, Role role, String status, String phone) {
         this.id = id;
         this.cuid = cuid;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.name = name;
         this.email = email;
         this.password = password;
         this.role = role;

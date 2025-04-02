@@ -1,17 +1,24 @@
 package com.example.demo.controllers;
 
 import com.example.demo.entities.Users;
-import com.example.demo.services.AuthService;
-import com.example.demo.services.JwtService;
+import com.example.demo.services.auth.AuthService;
+import com.example.demo.services.auth.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+    SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
 
     private final AuthService authService;
     private final JwtService jwtService;
@@ -33,5 +40,33 @@ public class AuthController {
     public ResponseEntity<String> login(@RequestBody Users user) {
         String token = authService.login(user);
         return ResponseEntity.ok(token);
+    }
+
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        // Perform logout
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            System.out.println("Logging out user: " + auth.getName());
+            logoutHandler.logout(request, response, auth); // Clear security context
+        }
+        System.out.println("Logging out user: ");
+
+        return ResponseEntity.ok("Logged out successfully");
+    }
+
+    // get current user
+    @GetMapping("/user")
+    public Map<String, Object> dashboard() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Auth: " + authentication);
+        String username = authentication.getName(); // Get only the username
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", username);
+        response.put("roles", authentication.getAuthorities());
+
+        return response; // Spring automatically converts it to JSON
     }
 }

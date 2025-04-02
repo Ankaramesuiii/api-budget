@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Setter
 @Getter
 @Entity
@@ -17,20 +15,65 @@ public class Budget {
     private Long id;
 
     @Column(nullable = false)
-    private Double totalAmount; // Total budget amount set by SuperManager
+    private double totalBudget; // Total budget allocated to the team
+
+    @Column(nullable = false)
+    private double remainingBudget; // Remaining budget after deducting training costs
+
+    @Column(nullable = false)
+    private double amount; // Total budget allocated to the team
 
     @OneToOne
-    @JoinColumn(name = "super_manager_id", nullable = false)
-    private SuperManager superManager; // Budget is set by the SuperManager
+    @JoinColumn(name = "team_id", nullable = false)
+    private Team team; // Each Budget is assigned to one Team
 
-    @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Manager> managers; // Budget is allocated to Managers
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public double getTotalBudget() {
+        return totalBudget;
+    }
+
+    public void setTotalBudget(double totalBudget) {
+        this.totalBudget = totalBudget;
+    }
+
+    public double getRemainingBudget() {
+        return remainingBudget;
+    }
+
+    public void setRemainingBudget(double remainingBudget) {
+        this.remainingBudget = remainingBudget;
+    }
+
+    public Team getTeam() {
+        return team;
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
 
     // Constructors
     public Budget() { }
 
-    public Budget(Double totalAmount, SuperManager superManager) {
-        this.totalAmount = totalAmount;
-        this.superManager = superManager;
+    public Budget(double totalBudget, Team team) {
+        this.totalBudget = totalBudget;
+        this.remainingBudget = totalBudget; // Initially, remainingBudget = totalBudget
+        this.team = team;
     }
+
 }

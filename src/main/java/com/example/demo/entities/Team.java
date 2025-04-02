@@ -26,14 +26,71 @@ public class Team {
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TeamMember> teamMembers; // List of team members
 
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<BudgetCategory> budgetCategories; // Budget categories for the team
-
+    @OneToOne(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private Budget budget;
+    
     // Constructors
     public Team() { }
 
-    public Team(String name, Manager manager) {
+    public Team(String name, Manager manager, Budget budget) {
         this.name = name;
         this.manager = manager;
+        this.budget = budget;
+    }
+
+    public Team(String teamName, Manager manager) {
+        this.name = teamName;
+        this.manager = manager;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Manager getManager() {
+        return manager;
+    }
+
+    public void setManager(Manager manager) {
+        this.manager = manager;
+    }
+
+    public List<TeamMember> getTeamMembers() {
+        return teamMembers;
+    }
+
+    public void setTeamMembers(List<TeamMember> teamMembers) {
+        this.teamMembers = teamMembers;
+    }
+
+    public Budget getBudget() {
+        return budget;
+    }
+
+    public void setBudget(Budget budget) {
+        this.budget = budget;
+    }
+
+    @Override
+    public String toString() {
+        return "Team{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", manager=" + manager +
+                ", teamMembers=" + teamMembers +
+                ", budget=" + budget +
+                '}';
     }
 }

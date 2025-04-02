@@ -20,6 +20,30 @@ public class BusinessUnit {
     @OneToOne(mappedBy = "businessUnit", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private SuperManager superManager; // Each BU has one SuperManager
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public SuperManager getSuperManager() {
+        return superManager;
+    }
+
+    public void setSuperManager(SuperManager superManager) {
+        this.superManager = superManager;
+    }
+
     // Constructors
     public BusinessUnit() { }
 

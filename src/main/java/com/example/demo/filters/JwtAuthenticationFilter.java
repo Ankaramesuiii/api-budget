@@ -1,7 +1,7 @@
 package com.example.demo.filters;
 
-import com.example.demo.services.JwtService;
-import com.example.demo.services.UserDetailsServiceImpl;
+import com.example.demo.services.auth.JwtService;
+import com.example.demo.services.auth.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             email = jwtService.extractUsername(jwt);
         } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT Token");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
             return;
         }
 

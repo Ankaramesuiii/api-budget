@@ -17,15 +17,26 @@ public class Manager extends Users {
     @OneToOne(mappedBy = "manager", cascade = CascadeType.ALL)
     private Team team; // Each Manager manages one Team
 
-    @ManyToOne
-    @JoinColumn(name = "budget_id", nullable = false)
-    private Budget budget; // Each Manager is allocated a budget
-
     // Constructors
     public Manager() { }
 
-    public Manager(SuperManager superManager, Budget budget) {
+    public Manager(SuperManager superManager) {
         this.superManager = superManager;
-        this.budget = budget;
+    }
+
+    public SuperManager getSuperManager() {
+        return superManager;
+    }
+
+    public void setSuperManager(SuperManager superManager) {
+        this.superManager = superManager;
+    }
+
+    public Team getTeam() {
+        return team;
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
     }
 }

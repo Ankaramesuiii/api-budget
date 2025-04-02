@@ -19,12 +19,26 @@ public class SuperManager extends Users {
     @OneToMany(mappedBy = "superManager", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Manager> managers; // SuperManager oversees 3-6 Managers
 
-    @OneToOne(mappedBy = "superManager", cascade = CascadeType.ALL)
-    private Budget budget; // SuperManager sets the budget
-
     public SuperManager() { }
 
-    public SuperManager(Users user,BusinessUnit businessUnit) {
+    public SuperManager(BusinessUnit businessUnit,String name) {
         this.businessUnit = businessUnit;
+        this.setName(name);
+    }
+
+    public BusinessUnit getBusinessUnit() {
+        return businessUnit;
+    }
+
+    public void setBusinessUnit(BusinessUnit businessUnit) {
+        this.businessUnit = businessUnit;
+    }
+
+    public List<Manager> getManagers() {
+        return managers;
+    }
+
+    public void setManagers(List<Manager> managers) {
+        this.managers = managers;
     }
 }

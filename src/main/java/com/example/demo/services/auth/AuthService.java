@@ -1,8 +1,5 @@
-package com.example.demo.services;
+package com.example.demo.services.auth;
 
-import com.example.demo.entities.Manager;
-import com.example.demo.entities.SuperManager;
-import com.example.demo.entities.TeamMember;
 import com.example.demo.entities.Users;
 import com.example.demo.exceptions.InvalidInputException;
 import com.example.demo.exceptions.LoginFailedException;
@@ -63,32 +60,6 @@ public class AuthService {
             logger.error("Failed to register user: {}", user.getEmail(), e);
             throw new RuntimeException("Registration failed due to an unexpected error.");
         }
-
-        /*
-        try {
-            switch (user.getRole()) {
-                case SUPER_MANAGER:
-                    SuperManager superManager = new SuperManager();
-
-                    superManagerRepository.save(superManager);
-                    break;
-                case MANAGER:
-                    Manager manager = new Manager();
-                    managerRepository.save(manager);
-                    break;
-                case TEAM_MEMBER:
-                    TeamMember teamMember = new TeamMember();
-                    teamMemberRepository.save(teamMember);
-                    break;
-                default:
-                    throw new RuntimeException("Invalid role provided.");
-            }
-            logger.info("User {} registered successfully", user.getEmail());
-        } catch (Exception e) {
-            logger.error("Failed to register user: {}", user.getEmail(), e);
-            throw new RuntimeException("Registration failed due to an unexpected error.");
-        }
-         */
     }
 
 
@@ -108,6 +79,7 @@ public class AuthService {
             Users loggedInUser = userRepository.findByEmail(user.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
+            System.out.println("Logged in user: " + loggedInUser);
             // Generate JWT token
             return jwtService.generateToken(loggedInUser);
         } catch (UsernameNotFoundException e) {
