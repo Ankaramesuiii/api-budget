@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.configs;
 
 import com.example.demo.entities.BusinessUnit;
 import com.example.demo.entities.SuperManager;
@@ -13,10 +13,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.text.Normalizer;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 
 @Component
@@ -67,8 +65,6 @@ public class StartupDataInitializer implements CommandLineRunner {
             put("Technologies de l'information", "Florentino Becker");
             put("Ventes & Relations clients", "Demetrice O'Conner");
         }};
-
-        Random random = new Random();
 
         buToSm.forEach((buName, fullName) -> {
             // Create and save Business Unit

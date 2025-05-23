@@ -28,7 +28,7 @@ jobs:
   build-deploy:
     name: Build API
     runs-on: ubuntu-latest  # Ensure this job also runs only on Ubuntu
-    needs: test-everywhere # This ensures the build/deploy happens after the tests
+    needs: test-with-mssql # This ensures the build/deploy happens after the tests
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
