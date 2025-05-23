@@ -1,35 +1,40 @@
 package com.example.demo.services;
 
 import com.example.demo.entities.*;
+import com.example.demo.enums.BudgetType;
+import com.example.demo.enums.Role;
 import com.example.demo.repositories.*;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 @Service
+@AllArgsConstructor
 public class TeamService {
+    private final TeamRepository teamRepository;
+    private final ManagerRepository managerRepository;
+    private final UserService userService;
 
-    @Autowired
-    private TeamRepository teamRepository;
-    @Autowired
-    private BudgetService budgetService;
+    public Team getOrCreateTeam(String managerName, SuperManager superManager) {
+        Manager manager = managerRepository.findByName(managerName)
+                .orElseGet(() -> createNewManager(managerName, superManager));
 
+        return teamRepository.findByManager(manager)
+                .orElseGet(() -> createNewTeam(manager));
+    }
 
-    @Transactional  // Ensure everything happens within a transaction
-    public Team getOrCreate(String managerName, Manager manager) {
-        String teamName = "Team " + managerName;
-        return teamRepository.findByName(teamName)
-                .orElseGet(() -> {
-                    Team team = new Team(teamName, manager);
-                    Budget budget = new Budget();
-                    budget.setTotalBudget(100000.0);
-                    budget.setRemainingBudget(100000.0);
-                    budget.setAmount(100000.0);
-                    budget.setTeam(team);
-                    team.setBudget(budget);
-                    return teamRepository.save(team);
-                });
+    private Manager createNewManager(String name, SuperManager superManager) {
+        Manager manager = new Manager(superManager);
+        manager.setName(name);
+        userService.setUserFields(manager, userService.getCuid("M-"), Role.MANAGER);
+        return managerRepository.save(manager);
+    }
+
+    private Team createNewTeam(Manager manager) {
+        Team team = new Team("Team " + manager.getName(), manager);
+        return teamRepository.save(team);
     }
 }

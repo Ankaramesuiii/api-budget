@@ -10,13 +10,14 @@ import java.util.List;
 @Getter
 @Entity
 @Table(name = "super_manager")
+
 public class SuperManager extends Users {
 
     @OneToOne
     @JoinColumn(name = "business_unit_id", nullable = false)
     private BusinessUnit businessUnit; // Each SuperManager manages one BU
 
-    @OneToMany(mappedBy = "superManager", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "superManager", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Manager> managers; // SuperManager oversees 3-6 Managers
 
     public SuperManager() { }

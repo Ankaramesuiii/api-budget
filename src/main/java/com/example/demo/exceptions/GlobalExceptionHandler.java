@@ -2,59 +2,76 @@ package com.example.demo.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.Objects;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MultipartException.class)
-    public ResponseEntity<?> handleMultipartException(MultipartException ex, WebRequest request) {
-        return new ResponseEntity<>(new ErrorResponse("File is missing or the request is not a multipart request."), HttpStatus.BAD_REQUEST);
+    // === Specific Handlers ===
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<String> handleMissingFilePart(MissingServletRequestPartException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body("Le fichier est requis mais manquant dans la requête.");
+    }
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<String> handleMissingFilePart(MissingServletRequestParameterException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body("Le paramètre requis '" + ex.getParameterName() + "' est manquant dans la requête.");
     }
 
-    @ExceptionHandler(FileMissingException.class)
-    public ResponseEntity<?> handleFileMissingException(FileMissingException ex, WebRequest request) {
+    // === BAD REQUEST: All validation-related exceptions ===
+
+    @ExceptionHandler({
+            InvalidInputException.class,
+            FileMissingException.class,
+            InvalidDirectorException.class
+    })
+    public ResponseEntity<ErrorResponse> handleBadRequestExceptions(RuntimeException ex) {
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<?> handleUnauthorizedException(UnauthorizedException ex, WebRequest request) {
+    // === UNAUTHORIZED: Auth-related errors ===
+
+    @ExceptionHandler({
+            UnauthorizedException.class,
+            LoginFailedException.class
+    })
+    public ResponseEntity<ErrorResponse> handleUnauthorized(RuntimeException ex) {
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(LoginFailedException.class)
-    public ResponseEntity<?> handleLoginFailedException(LoginFailedException ex, WebRequest request) {
-        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.UNAUTHORIZED);
-    }
+    // === CONFLICT: Duplicate users ===
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<?> handleUserAlreadyExistsException(UserAlreadyExistsException ex, WebRequest request) {
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExists(UserAlreadyExistsException ex) {
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(InvalidInputException.class)
-    public ResponseEntity<?> handleInvalidInputException(InvalidInputException ex, WebRequest request) {
-        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
-    }
+    // === NOT FOUND: User not found ===
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
+    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(
-            Exception ex, WebRequest request) {
+    // === GLOBAL fallback ===
 
-        // Skip handling for SSE requests
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
+
+        // Allow Server-Sent Events to bypass this
         if (request.getHeader("Accept") != null &&
                 Objects.requireNonNull(request.getHeader("Accept")).contains("text/event-stream")) {
-            return null; // Let the SSE emitter handle it
+            return null;
         }
 
         ErrorResponse errorResponse = new ErrorResponse(

@@ -1,264 +1,223 @@
-//package com.example.demo.services;
-//
-//import com.example.demo.entities.*;
-//import com.example.demo.repositories.*;
-//import com.github.javafaker.Faker;
-//import jakarta.transaction.Transactional;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.stereotype.Service;
-//import org.springframework.web.multipart.MultipartFile;
-//
-//import java.io.IOException;
-//import java.time.LocalDate;
-//import java.util.*;
-//import java.util.function.Function;
-//import java.util.stream.Collectors;
-//
-//@Service
-//@Transactional
-//public class TrainingService {
-//
-//    @Autowired private ExcelService excelService;
-//    @Autowired private BusinessUnitService businessUnitService;
-//    @Autowired private UserService userService;
-//    @Autowired private TeamService teamService;
-//    @Autowired private ThemeService themeService;
-//    @Autowired private TrainingRepository trainingRepository;
-//    @Autowired private BudgetService budgetService;
-//
-//    public int processExcelFile(MultipartFile file) throws IOException {
-//        List<Map<String, String>> rows = excelService.readExcelFile(file);
-//        if (rows.isEmpty()) return 0;
-//
-//        List<Training> trainings = new ArrayList<>();
-//        Map<Team, Double> budgetUpdates = new HashMap<>();
-//
-//        for (Map<String, String> row : rows) {
-//            Training training = processTrainingRow(row);
-//            trainings.add(training);
-//
-//            // Track budget updates
-//            budgetUpdates.merge(training.getTeamMember().getTeam(), training.getPriceTND(), Double::sum);
-//        }
-//
-//        // Batch save trainings
-//        trainingRepository.saveAll(trainings);
-//
-//        // Update budgets in batch
-//        budgetService.updateBudgetsInBatch(budgetUpdates);
-//
-//        return rows.size();
-//    }
-//
-//    private Training processTrainingRow(Map<String, String> row) {
-//        BusinessUnit bu = businessUnitService.getOrCreate(row.get("BU"));
-//        SuperManager sm = userService.getOrCreateSuperManager(row.get("Directeur"), bu);
-//        Manager manager = userService.getOrCreateManager(row.get("Manager"), sm);
-//        Team team = teamService.getOrCreate(row.get("Manager"), manager);
-//        TeamMember teamMember = userService.getOrCreateTeamMember(row.get("Nom/Prénom"), team);
-//        Theme theme = themeService.getOrCreate(row.get("Thématique"));
-//
-//        Optional<Training> existingTraining = trainingRepository.findByCodeSessionAndTeamMember(
-//                row.get("Code session"), teamMember
-//        );
-//
-//        return existingTraining.orElseGet(() -> createTrainingFromRow(row, teamMember, theme));
-//    }
-//
-//
-//    private Training createTrainingFromRow(Map<String, String> row, TeamMember teamMember, Theme theme) {
-//        Training training = new Training();
-//        training.setStartDate(LocalDate.parse(row.get("Date de début")));
-//        training.setEndDate(LocalDate.parse(row.get("Date de fin")));
-//        training.setCodeSession(row.get("Code session"));
-//        training.setDuration(Integer.parseInt(row.get("Nombre de jour")));
-//        training.setMode(row.get("Mode"));
-//        training.setStatus(row.get("Statut"));
-//        training.setPresence(row.get("Présence"));
-//        training.setCreationDate(LocalDate.parse(row.get("Création demande d'achat")));
-//        training.setCodeDA(row.get("Code DA"));
-//        training.setInternalTrainer("Oui".equals(row.get("Formateur interne")));
-//        training.setTeamMember(teamMember);
-//        training.setTheme(theme);
-//        training.setPriceTND(Double.parseDouble(row.get("Prix")) * Double.parseDouble(row.get("Taux de change")));
-//        training.setCurrency(row.get("Devise"));
-//        training.setExchangeRate(Double.parseDouble(row.get("Taux de change")));
-//        return training;
-//    }
-//}
 package com.example.demo.services;
 
-
+import com.example.demo.dtos.TrainingImportResult;
 import com.example.demo.entities.*;
-import com.example.demo.enums.Post;
+import com.example.demo.enums.BudgetType;
 import com.example.demo.enums.Role;
+import com.example.demo.exceptions.FileMissingException;
+import com.example.demo.exceptions.InvalidDirectorException;
+import com.example.demo.exceptions.InvalidInputException;
 import com.example.demo.repositories.*;
 import com.github.javafaker.Faker;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.example.demo.enums.BudgetType.*;
 @Service
 @Transactional
+@AllArgsConstructor
 public class TrainingService {
+    private final ExcelService excelService;
+    private final BudgetService budgetService;
+    private final TeamService teamService;
+    private final TeamMemberService teamMemberService;
+    private final TrainingBuilderService trainingBuilderService;
+    private final PendingBudgetService pendingBudgetService;
+    private final TrainingRepository trainingRepository;
 
-    @Autowired private ExcelService excelService;
-    @Autowired private BusinessUnitRepository businessUnitRepository;
-    @Autowired private SuperManagerRepository superManagerRepository;
-    @Autowired private ManagerRepository managerRepository;
-    @Autowired private TeamRepository teamRepository;
-    @Autowired private TeamMemberRepository teamMemberRepository;
-    @Autowired private ThemeRepository themeRepository;
-    @Autowired private TrainingRepository trainingRepository;
-    @Autowired private BudgetRepository budgetRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
-    private final Faker faker = new Faker();
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private BudgetService budgetService;
-
-    public int processExcelFile(MultipartFile file) throws IOException {
+    public TrainingImportResult processExcelFile(MultipartFile file, Users user) throws IOException {
+        validateFile(file);
+        Map<BudgetType, Double> budgetsByDirector = getDirectorBudgets(user);
         List<Map<String, String>> rows = excelService.readExcelFile(file);
-        if (rows.isEmpty()) return 0;
 
-        Map<String, BusinessUnit> businessUnits = businessUnitRepository.findAll()
-                .stream()
-                .collect(Collectors.toMap(BusinessUnit::getName, Function.identity()));
-
-        Map<String, SuperManager> superManagers = superManagerRepository.findAll()
-                .stream()
-                .collect(Collectors.toMap(SuperManager::getName, Function.identity()));
-
-        Map<String, Manager> managers = managerRepository.findAll()
-                .stream()
-                .collect(Collectors.toMap(Manager::getName, Function.identity()));
-
-        Map<String, Team> teams = teamRepository.findAll()
-                .stream()
-                .collect(Collectors.toMap(Team::getName, Function.identity()));
-
-        Map<String, TeamMember> teamMembers = teamMemberRepository.findAll()
-                .stream()
-                .collect(Collectors.toMap(TeamMember::getName, Function.identity()));
-
-        Map<String, Theme> themes = themeRepository.findAll()
-                .stream()
-                .collect(Collectors.toMap(Theme::getName, Function.identity()));
-
-
-        List<Training> trainings = new ArrayList<>(rows.size());
-        Map<Team, Double> budgetUpdates = new HashMap<>();
-
-        for (Map<String, String> row : rows) {
-            Training training = processTrainingRow(row, businessUnits, superManagers, managers, teams, teamMembers, themes);
-            trainings.add(training);
-
-            // Track budget changes
-            Team team = training.getTeamMember().getTeam();
-            System.out.println("Updating budget for team " + team.getName() + " by " + training.getPriceTND());
-            budgetUpdates.merge(team, training.getPriceTND(), Double::sum);
-
-            System.out.println("Budget update: " + budgetUpdates.get(team));
-
-        }
-
-        // 4. Batch save
-        trainingRepository.saveAll(trainings);
-
-        // 5. Update budgets
-        budgetService.updateBudgetsInBatch(budgetUpdates);
-
-        return rows.size();
-    }
-
-    private Training  processTrainingRow(Map<String, String> row,
-                                         Map<String, BusinessUnit> businessUnits,
-                                         Map<String, SuperManager> superManagers,
-                                         Map<String, Manager> managers,
-                                         Map<String, Team> teams,
-                                         Map<String, TeamMember> teamMembers,
-                                         Map<String, Theme> themes) {
-
-        BusinessUnit bu = businessUnits.computeIfAbsent(row.get("BU"), name -> {
-            BusinessUnit newBu = new BusinessUnit(name);
-            return businessUnitRepository.save(newBu);
-        });
-
-
-        SuperManager sm = superManagers.computeIfAbsent(row.get("Directeur"), name -> {
-            SuperManager newSm = new SuperManager(bu,name);
-
-            userService.setUserFields(newSm, row.get("Matricule"), Role.SUPER_MANAGER);
-            return superManagerRepository.save(newSm);
-        });
-
-        Manager manager = managers.computeIfAbsent(row.get("Manager"), name -> {
-            Manager newManager = new Manager(sm);
-            newManager.setName(name);
-            userService.setUserFields(newManager, row.get("Matricule"), Role.MANAGER);
-            return managerRepository.save(newManager);
-        });
-
-        Team team = teams.computeIfAbsent(row.get("Manager"), name -> {
-            Team newTeam = new Team("Team "+name, manager);
-            Budget defaultBudget = new Budget();
-            defaultBudget.setTotalBudget(100000.0);
-            defaultBudget.setRemainingBudget(100000.0);
-            defaultBudget.setTeam(newTeam);
-            defaultBudget.setAmount(100000.0);
-            newTeam.setBudget(defaultBudget);
-            return teamRepository.save(newTeam);
-        });
-
-        TeamMember teamMember = teamMembers.computeIfAbsent(row.get("Nom/Prénom"), name -> {
-            TeamMember newTeamMember = new TeamMember(team, userService.getRandomPost());
-            newTeamMember.setName(name);
-            userService.setUserFields(newTeamMember, row.get("Matricule"), Role.TEAM_MEMBER);
-            return teamMemberRepository.save(newTeamMember);
-        });
-
-        Theme theme = themes.computeIfAbsent(row.get("Thématique"), name -> {
-            Theme newTheme = new Theme(name);
-            return themeRepository.save(newTheme);
-        });
-        Optional<Training> existingTraining = trainingRepository.findByCodeSessionAndTeamMember(
-                row.get("Code session"), teamMember
+        validateDirector(rows, user);
+        Set<String> allMemberNames = extractMemberNames(rows);
+        Map<BudgetType, BigDecimal> perMemberBudgets = budgetService.calculatePerMemberBudgets(
+                budgetsByDirector,
+                allMemberNames.size()
         );
 
-        return existingTraining.orElseGet(() -> createTrainingFromRow(row, teamMember, theme));
+        List<Training> trainings = processRowsByManager(
+                rows,
+                user,
+                perMemberBudgets,
+                budgetsByDirector
+        );
 
+        trainingRepository.saveAll(trainings);
+        pendingBudgetService.clearAllBudgets(user.getEmail());
+
+        String warning = generateBudgetWarning(
+                BigDecimal.valueOf(budgetsByDirector.get(TRAINING)),
+                calculateTotalUsedBudget(trainings)
+        );
+
+        return new TrainingImportResult(trainings.size(), warning);
     }
 
-
-    private Training createTrainingFromRow(Map<String, String> row, TeamMember teamMember, Theme theme) {
-        Training training = new Training();
-        training.setStartDate(LocalDate.parse(row.get("Date de début")));
-        training.setEndDate(LocalDate.parse(row.get("Date de fin")));
-        training.setCodeSession(row.get("Code session"));
-        training.setDuration(Integer.parseInt(row.get("Nombre de jour")));
-        training.setMode(row.get("Mode"));
-        training.setStatus(row.get("Statut"));
-        training.setPresence(row.get("Présence"));
-        training.setCreationDate(LocalDate.parse(row.get("Création demande d'achat")));
-        training.setCodeDA(row.get("Code DA"));
-        training.setInternalTrainer(row.get("Formateur interne").equals("Oui"));
-        training.setTeamMember(teamMember);
-        training.setTheme(theme);
-        training.setPriceTND(Double.parseDouble(row.get("Prix_TND")));
-        training.setCurrency(row.get("Devise"));
-        training.setExchangeRate(Double.parseDouble(row.get("Taux de change")));
-        training.setPrice(Double.parseDouble(row.get("Prix")));
-        return training;
+    // Private helper methods
+    private void validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new FileMissingException("Le fichier est absent");
+        }
     }
 
+    private Map<BudgetType, Double> getDirectorBudgets(Users user) {
+        Map<BudgetType, Double> budgets = pendingBudgetService.getBudgetsByDirector(user.getEmail());
+        if (budgets.isEmpty()) {
+            throw new InvalidInputException("Aucun budget trouvé pour cet utilisateur");
+        }
+        return budgets;
+    }
+
+    private void validateDirector(List<Map<String, String>> rows, Users user) {
+        String expectedName = user.getName();
+        boolean allMatch = rows.stream()
+                .map(r -> r.get("Directeur"))
+                .allMatch(expectedName::equalsIgnoreCase);
+        if (!allMatch) {
+            throw new InvalidDirectorException("Le fichier contient des lignes avec un autre directeur que vous !");
+        }
+    }
+
+    private Set<String> extractMemberNames(List<Map<String, String>> rows) {
+        Set<String> names = rows.stream()
+                .map(r -> r.get("Nom/Prénom"))
+                .collect(Collectors.toSet());
+        if (names.isEmpty()) {
+            throw new InvalidInputException("Aucun member n'existe dans le fichier !");
+        }
+        return names;
+    }
+
+    private List<Training> processRowsByManager(
+            List<Map<String, String>> rows,
+            Users user,
+            Map<BudgetType, BigDecimal> perMemberBudgets,
+            Map<BudgetType, Double> budgetsByDirector
+    ) {
+        List<Training> trainings = new ArrayList<>();
+        Map<String, List<Map<String, String>>> rowsByManager = rows.stream()
+                .collect(Collectors.groupingBy(r -> r.get("Manager")));
+
+        for (Map.Entry<String, List<Map<String, String>>> entry : rowsByManager.entrySet()) {
+            Team team = teamService.getOrCreateTeam(entry.getKey(), (SuperManager) user);
+            processTeamRows(entry.getValue(), team, perMemberBudgets, budgetsByDirector, trainings);
+        }
+        return trainings;
+    }
+
+    private void processTeamRows(
+            List<Map<String, String>> rows,
+            Team team,
+            Map<BudgetType, BigDecimal> perMemberBudgets,
+            Map<BudgetType, Double> budgetsByDirector,
+            List<Training> trainings
+    ) {
+        Set<String> memberNames = rows.stream()
+                .map(r -> r.get("Nom/Prénom"))
+                .collect(Collectors.toSet());
+
+        initializeTeamBudgets(team, memberNames.size(), perMemberBudgets, budgetsByDirector);
+
+        BigDecimal teamTrainingCost = BigDecimal.ZERO;
+        for (Map<String, String> row : rows) {
+            TeamMember member = teamMemberService.getOrCreateMember(row, team, perMemberBudgets);
+            Optional<Training> training = processTraining(row, member, team, teamTrainingCost);
+            training.ifPresent(trainings::add);
+        }
+    }
+
+    private void initializeTeamBudgets(
+            Team team,
+            int memberCount,
+            Map<BudgetType, BigDecimal> perMemberBudgets,
+            Map<BudgetType, Double> budgetsByDirector
+    ) {
+        for (BudgetType type : budgetsByDirector.keySet()) {
+            BigDecimal teamBudget = perMemberBudgets.get(type).multiply(BigDecimal.valueOf(memberCount));
+            budgetService.getOrCreateBudget(
+                    team,
+                    type,
+                    teamBudget.doubleValue(),
+                    perMemberBudgets.get(type).doubleValue()
+            );
+        }
+    }
+
+    private Optional<Training> processTraining(
+            Map<String, String> row,
+            TeamMember member,
+            Team team,
+            BigDecimal teamTrainingCost
+    ) {
+        Optional<Training> existing = trainingRepository.findByCodeSessionAndTeamMember(
+                row.get("Code session"), member
+        );
+
+        if (existing.isPresent()) {
+            return Optional.empty();
+        }
+
+        Training training = trainingBuilderService.createTrainingFromRow(row, member);
+        if (training.getStatus().contentEquals("Annulé")) {
+            return Optional.empty();
+        }
+
+        processTrainingBudget(training, member, team, teamTrainingCost);
+        return Optional.of(training);
+    }
+
+    private void processTrainingBudget(
+            Training training,
+            TeamMember member,
+            Team team,
+            BigDecimal teamTrainingCost
+    ) {
+        double cost = training.getPriceTND();
+
+        // Update member budget
+        member.setTrainingBudgetRemaining(
+                member.getTrainingBudgetRemaining().subtract(BigDecimal.valueOf(cost))
+        );
+
+        // Update team budget
+        Budget trainingBudget = team.getBudgetByType(TRAINING);
+        BigDecimal updatedRemaining = BigDecimal.valueOf(trainingBudget.getRemainingBudget())
+                .subtract(BigDecimal.valueOf(cost));
+        budgetService.updateBudget(trainingBudget, updatedRemaining.doubleValue());
+    }
+
+    private BigDecimal calculateTotalUsedBudget(List<Training> trainings) {
+        return trainings.stream()
+                .map(t -> BigDecimal.valueOf(t.getPriceTND()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private String generateBudgetWarning(BigDecimal totalBudget, BigDecimal usedBudget) {
+        BigDecimal usagePercentage = usedBudget
+                .divide(totalBudget, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+
+        return usagePercentage.compareTo(BigDecimal.valueOf(80)) > 0
+                ? String.format(
+                "️ Attention : vous avez utilisé %.2f%% de votre budget de formation (%.2f TND sur %.2f TND).",
+                usagePercentage,
+                usedBudget,
+                totalBudget
+        )
+                : null;
+    }
 }

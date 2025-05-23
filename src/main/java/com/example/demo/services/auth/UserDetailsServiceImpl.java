@@ -30,16 +30,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (optionalUser.isEmpty()) {
             throw new UserNotFoundException("User with email '" + username + "' not found");
         }
+        System.out.println(optionalUser.get().getEmail());
 
         Users user = optionalUser.get();
-        // Check the user type before casting
-        if (user instanceof SuperManager superManager) {
-            System.out.println("SuperManager found: " + superManager.getManagers());
-        } else if (user instanceof Manager manager) {
-            System.out.println("Manager found: " + manager.getTeam().getTeamMembers());
-        } else if (user instanceof TeamMember teamMember) {
-            System.out.println("TeamMember found: " + teamMember.getTeam()); // Example
-        }
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),

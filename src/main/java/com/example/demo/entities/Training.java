@@ -13,7 +13,8 @@ public class Training {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "training_id")
+    private int id;
 
     @Column(nullable = false)
     private LocalDate startDate;
@@ -90,11 +91,11 @@ public class Training {
         this.theme = theme;
     }
 
-    public Long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 

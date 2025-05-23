@@ -42,7 +42,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String email;
 
-        if (request.getRequestURI().contains("/api/auth/")) {
+        if (
+                request.getRequestURI().contains("/api/auth/") ||
+                request.getRequestURI().contains("/swagger-ui/") ||
+                request.getRequestURI().contains("/v3/api-docs") ||
+                request.getRequestURI().contains("/swagger-resources") ||
+                request.getRequestURI().contains("/webjars/")
+        ) {
             filterChain.doFilter(request, response);
             return;
         }

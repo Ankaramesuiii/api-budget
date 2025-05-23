@@ -14,7 +14,7 @@ public class Manager extends Users {
     @JoinColumn(name = "super_manager_id", nullable = false)
     private SuperManager superManager; // Each Manager reports to a SuperManager
 
-    @OneToOne(mappedBy = "manager", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true)
     private Team team; // Each Manager manages one Team
 
     // Constructors

@@ -1,45 +1,57 @@
 package com.example.demo.services;
 
-import com.example.demo.entities.*;
+import com.example.demo.entities.Budget;
+import com.example.demo.entities.Team;
+import com.example.demo.enums.BudgetType;
 import com.example.demo.repositories.BudgetRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.EnumMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
+@Transactional
+@AllArgsConstructor
 public class BudgetService {
-    @Autowired private BudgetRepository budgetRepository;
+    private final BudgetRepository budgetRepository;
 
-    public Budget createDefaultBudget(Team team) {
-        Budget budget = new Budget();
-        budget.setTotalBudget(100000.0);
-        budget.setRemainingBudget(100000.0);
-        budget.setAmount(100000.0);
-        budget.setTeam(team);
+    public Budget getOrCreateBudget(Team team, BudgetType type, double totalBudget, double perMemberBudget) {
+        return budgetRepository.findByTeamAndType(team, type)
+                .orElseGet(() -> {
+                    Budget newBudget = new Budget();
+                    newBudget.setTeam(team);
+                    newBudget.setType(type);
+                    newBudget.setTotalBudget(totalBudget);
+                    newBudget.setRemainingBudget(totalBudget);
+                    newBudget.setBudgetPerMember(perMemberBudget);
+                    team.getBudgets().add(newBudget);
+                    return budgetRepository.save(newBudget);
+                });
+    }
+
+    public Budget updateBudget(Budget budget, double newRemaining) {
+        budget.setRemainingBudget(newRemaining);
         return budgetRepository.save(budget);
     }
 
-    public void updateBudgetsInBatch(Map<Team, Double> budgetUpdates) {
-        List<Budget> budgets = budgetRepository.findAllById(
-                budgetUpdates.keySet().stream()
-                        .map(Team::getBudget)
-                        .filter(Objects::nonNull)
-                        .map(Budget::getId)
-                        .collect(Collectors.toList())
-        );
-
-        budgets.forEach(budget -> {
-            Double amount = budgetUpdates.get(budget.getTeam());
-            System.out.println("Updating budget for team " + budget.getTeam().getName() + " by " + amount);
-            System.out.println("Old remaining budget: " + budget.getRemainingBudget());
-            System.out.println("team"+ budget.getTeam().getName());
-            budget.setRemainingBudget(budget.getRemainingBudget() - amount);
-        });
-
-        budgetRepository.saveAll(budgets);
+    public Map<BudgetType, BigDecimal> calculatePerMemberBudgets(
+            Map<BudgetType, Double> budgetsByDirector,
+            int memberCount
+    ) {
+        Map<BudgetType, BigDecimal> perMemberBudgets = new EnumMap<>(BudgetType.class);
+        for (BudgetType type : budgetsByDirector.keySet()) {
+            BigDecimal totalBudget = BigDecimal.valueOf(budgetsByDirector.get(type));
+            BigDecimal perMemberBudget = totalBudget.divide(
+                    BigDecimal.valueOf(memberCount),
+                    2,
+                    RoundingMode.HALF_UP
+            );
+            perMemberBudgets.put(type, perMemberBudget);
+        }
+        return perMemberBudgets;
     }
 }

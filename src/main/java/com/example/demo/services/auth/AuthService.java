@@ -80,6 +80,7 @@ public class AuthService {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
             System.out.println("Logged in user: " + loggedInUser);
+            System.out.println(jwtService.generateToken(loggedInUser));
             // Generate JWT token
             return jwtService.generateToken(loggedInUser);
         } catch (UsernameNotFoundException e) {

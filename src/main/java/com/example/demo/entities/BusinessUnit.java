@@ -1,6 +1,7 @@
 package com.example.demo.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,23 +9,25 @@ import lombok.*;
 @Getter
 @Entity
 @Table(name = "business_unit")
+@JsonIgnoreProperties("superManager")
 public class BusinessUnit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "bu_id")
+    private int id;
 
     @Column(nullable = false)
     private String name; // Name of the business unit
 
-    @OneToOne(mappedBy = "businessUnit", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "businessUnit", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private SuperManager superManager; // Each BU has one SuperManager
 
-    public Long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
