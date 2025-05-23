@@ -9,12 +9,11 @@ jobs:
   test-with-mssql:
     name: Test with MSSQL
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-       - name: Setup MSSQL
+      - name: Setup MSSQL
         uses: potatoqualitee/mssqlsuite@v1.8
         with:
           install: sqlengine, sqlclient, sqlpackage, localdb, fulltext
@@ -38,7 +37,6 @@ jobs:
     name: Build and Deploy API
     runs-on: ubuntu-latest
     needs: test-with-mssql  # Only run if test job succeeds
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
