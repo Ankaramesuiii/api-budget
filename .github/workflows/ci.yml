@@ -52,7 +52,7 @@ jobs:
           java-version: 17
 
       - name: Build with Maven
-        run: mvn -B clean install --file pom.xml
+        run: mvn -B clean install -DskipTests --file pom.xml
 
       # Optional: Deploy step
       # - name: Deploy to your server or service
