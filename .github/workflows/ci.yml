@@ -18,11 +18,11 @@ jobs:
         with:
           install: sqlengine, sqlclient, sqlpackage, localdb, fulltext
           version: 2019
-          sa-password: YourStrong!Passw0rd
+          sa-password: Ankaramesui1@1@
           show-log: true
 
       - name: Verify MSSQL
-        run: sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -d tempdb -Q "SELECT @@version;" -C
+        run: sqlcmd -S localhost -U sa -P Ankaramesui1@1@ -d tempdb -Q "SELECT @@version;" -C
 
       - name: Setup JDK 17
         uses: actions/setup-java@v3
