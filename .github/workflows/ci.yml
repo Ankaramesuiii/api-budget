@@ -24,6 +24,10 @@ jobs:
       - name: Verify MSSQL
         run: sqlcmd -S localhost -U sa -P Ankaramesui1@1@ -d tempdb -Q "SELECT @@version;" -C
 
+      - name: Create Database
+        run: |
+          sqlcmd -S localhost -U sa -P Ankaramesui1@1@ -Q "CREATE DATABASE pfe;"
+
       - name: Setup JDK 17
         uses: actions/setup-java@v3
         with:
