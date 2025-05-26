@@ -56,7 +56,7 @@ jobs:
         run: mvn -B clean package -DskipTests --file pom.xml
 
       - name: Upload JAR artifact
-        uses: actions/upload-artifact@v3.1.3
+        uses: actions/upload-artifact@v2
         with:
           name: application-jar
           path: target/*.jar
