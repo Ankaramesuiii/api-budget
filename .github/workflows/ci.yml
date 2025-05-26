@@ -61,23 +61,3 @@ jobs:
           name: application-jar
           path: target/*.jar
           if-no-files-found: error
-
-  manual-deploy:
-    name: Manual Deploy
-    runs-on: ubuntu-latest
-    needs: build-deploy
-    steps:
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: application-jar
-
-      - name: Show files for verification
-        run: ls -la
-
-      - name: Manual deploy step
-        run: |
-          echo "The JAR file has been built and is ready for deployment."
-          echo "Add your deployment commands here or trigger them manually."
-          echo "For security reasons, actual deployment commands are not included in this workflow."
-        if: ${{ github.event_name == 'workflow_dispatch' }}
