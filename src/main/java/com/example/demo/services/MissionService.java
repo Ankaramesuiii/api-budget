@@ -9,16 +9,13 @@ import com.example.demo.repositories.BudgetRepository;
 import com.example.demo.repositories.MissionRepository;
 import com.example.demo.repositories.TeamMemberRepository;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Service
 @Transactional
@@ -76,7 +73,7 @@ public class MissionService {
                     .orElseThrow(() -> new IllegalArgumentException("No mission budget found for team."));
 
             double teamRemaining = teamMissionBudget.getRemainingBudget();
-            if (teamRemaining < costPerMember) {
+            if (BigDecimal.valueOf(teamRemaining).compareTo(BigDecimal.valueOf(costPerMember)) < 0) {
                 throw new IllegalArgumentException("Not enough team mission budget.");
             }
 

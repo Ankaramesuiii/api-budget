@@ -3,10 +3,8 @@ package com.example.demo.services.auth;
 import com.example.demo.entities.Users;
 import com.example.demo.exceptions.InvalidInputException;
 import com.example.demo.exceptions.LoginFailedException;
+import com.example.demo.exceptions.RegistrationFailedException;
 import com.example.demo.exceptions.UserAlreadyExistsException;
-import com.example.demo.repositories.ManagerRepository;
-import com.example.demo.repositories.SuperManagerRepository;
-import com.example.demo.repositories.TeamMemberRepository;
 import com.example.demo.repositories.UsersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +22,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
-    public AuthService(UsersRepository userRepository, ManagerRepository managerRepository, SuperManagerRepository superManagerRepository, TeamMemberRepository teamMemberRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public AuthService(UsersRepository userRepository,  PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -57,8 +55,7 @@ public class AuthService {
             userRepository.save(user);
             logger.info("User {} registered successfully", user.getEmail());
         } catch (Exception e) {
-            logger.error("Failed to register user: {}", user.getEmail(), e);
-            throw new RuntimeException("Registration failed due to an unexpected error.");
+            throw new RegistrationFailedException("Registration failed due to an unexpected error.", e);
         }
     }
 
@@ -79,8 +76,8 @@ public class AuthService {
             Users loggedInUser = userRepository.findByEmail(user.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
-            System.out.println("Logged in user: " + loggedInUser);
-            System.out.println(jwtService.generateToken(loggedInUser));
+            logger.info("Logged in user: {}", loggedInUser);
+            logger.debug("Generated token for user: {}", loggedInUser.getEmail());
             // Generate JWT token
             return jwtService.generateToken(loggedInUser);
         } catch (UsernameNotFoundException e) {

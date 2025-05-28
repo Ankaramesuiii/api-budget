@@ -19,7 +19,7 @@ public class MissionController {
     private final MissionService missionService;
 
     @PostMapping
-    public ResponseEntity<?> createMissions(@RequestBody MissionRequestDTO request) {
+    public ResponseEntity<Map<String, String>> createMissions(@RequestBody MissionRequestDTO request) {
         try {
             missionService.assignSharedMission(request);
             return ResponseEntity.ok(

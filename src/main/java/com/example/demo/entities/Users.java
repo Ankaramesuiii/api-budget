@@ -2,20 +2,18 @@ package com.example.demo.entities;
 
 import com.example.demo.enums.Role;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
 
 
 @Entity
 @Table
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Users implements UserDetails {
+public class Users implements UserDetails, Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -119,7 +117,8 @@ public class Users implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        // In this application, email is used as the username for Spring Security
+        return getEmail();
     }
 
     @Override

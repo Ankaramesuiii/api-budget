@@ -49,10 +49,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 
-    // === CONFLICT: Duplicate users ===
+    // === CONFLICT: Duplicate users and registration failures ===
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleUserAlreadyExists(UserAlreadyExistsException ex) {
+    @ExceptionHandler({
+            UserAlreadyExistsException.class,
+            RegistrationFailedException.class
+    })
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExists(RuntimeException ex) {
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.CONFLICT);
     }
 

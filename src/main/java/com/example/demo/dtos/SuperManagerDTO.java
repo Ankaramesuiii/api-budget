@@ -14,6 +14,4 @@ public class SuperManagerDTO {
     private String email;
     private String businessUnitName;
     private List<String> managers;
-    //private List<Team> team;
-    //private List<Budget> budget;
 }

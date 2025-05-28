@@ -1,11 +1,13 @@
 package com.example.demo.controllers;
 
 import com.example.demo.entities.Users;
+import com.example.demo.exceptions.UnauthorizedException;
 import com.example.demo.services.auth.AuthService;
 import com.example.demo.services.auth.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
     SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
 
@@ -28,7 +31,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody Users user) {
-        System.out.println("Registering user: " + user);
+        log.info("Registering user: {}", user);
 
         authService.register(user);
         return ResponseEntity.ok("User registered successfully");
@@ -42,14 +45,15 @@ public class AuthController {
 
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
         // Perform logout
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
-            System.out.println("Logging out user: " + auth.getName());
+            log.info("Logging out user: {}", auth.getName());
             logoutHandler.logout(request, response, auth); // Clear security context
+        } else {
+            log.info("Logging out user with no active session");
         }
-        System.out.println("Logging out user: ");
 
         return ResponseEntity.ok("Logged out successfully");
     }
@@ -59,9 +63,9 @@ public class AuthController {
     public Map<String, Object> dashboard() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User is not authenticated");
+            throw new UnauthorizedException("User is not authenticated");
         }
-        System.out.println("Auth: " + authentication);
+        log.debug("Auth: {}", authentication);
         String username = authentication.getName(); // Get only the username
 
         Map<String, Object> response = new HashMap<>();

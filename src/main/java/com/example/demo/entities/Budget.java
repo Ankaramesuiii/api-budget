@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
+import java.io.Serializable;
 
 @Setter
 @Getter
@@ -18,7 +18,7 @@ import java.util.List;
         uniqueConstraints = @UniqueConstraint(
                 name = "UK_budget_team_type",
                 columnNames = {"team_id", "type"}))
-public class Budget {
+public class Budget implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

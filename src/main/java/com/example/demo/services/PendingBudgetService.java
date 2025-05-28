@@ -1,8 +1,9 @@
 package com.example.demo.services;
 
-import com.example.demo.entities.Budget;
+
 import com.example.demo.enums.BudgetType;
-import org.hibernate.type.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,11 +16,13 @@ import java.util.stream.Collectors;
 public class PendingBudgetService {
 
     private final Map<String, BigDecimal> pendingBudgets = new HashMap<>();
-
+    private static final Logger logger = LoggerFactory.getLogger(PendingBudgetService.class);
     // Set or update the budget
     public void setOrUpdateBudget(String directorId, BigDecimal budget, BudgetType type) {
         pendingBudgets.put(directorId +"_"+ type, budget);
-        System.out.println(pendingBudgets);
+        if (logger.isInfoEnabled()) {
+            logger.info("Current pending budgets: {}", pendingBudgets);
+        }
     }
 
     // Get the budget (optional, in case director hasn't set it yet)

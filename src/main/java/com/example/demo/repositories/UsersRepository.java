@@ -1,6 +1,5 @@
 package com.example.demo.repositories;
 
-import com.example.demo.entities.TeamMember;
 import com.example.demo.entities.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 

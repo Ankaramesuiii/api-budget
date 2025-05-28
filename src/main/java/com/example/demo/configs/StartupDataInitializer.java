@@ -8,6 +8,8 @@ import com.example.demo.repositories.SuperManagerRepository;
 import com.example.demo.services.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +22,8 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class StartupDataInitializer implements CommandLineRunner {
+    
+    private static final Logger logger = LoggerFactory.getLogger(StartupDataInitializer.class);
 
     private final BusinessUnitRepository businessUnitRepository;
     private final SuperManagerRepository superManagerRepository;
@@ -28,43 +32,45 @@ public class StartupDataInitializer implements CommandLineRunner {
 
     @Value("${app.seed:false}")
     private boolean seedEnabled;
+    
+    @Value("${app.default.password:password}")
+    private String defaultPassword;
 
     @Transactional
     @Override
     public void run(String... args) {
         if (!seedEnabled) {
-            System.out.println("🔁 Seeding disabled.");
+            logger.info("🔁 Seeding disabled.");
             return;
         }
 
         if (superManagerRepository.count() > 0 || businessUnitRepository.count() > 0) {
-            System.out.println("✅ SuperManagers already exist, skipping seeding.");
+            logger.info("✅ SuperManagers already exist, skipping seeding.");
             return;
         }
 
         // Map of BU name to SuperManager full name
-        Map<String, String> buToSm = new LinkedHashMap<>() {{
-            put("Business Intelligence & Analytics", "Ozzie Bayer");
-            put("Blockchain & Fintech", "Ms. Rich Treutel");
-            put("Communication & Relations publiques", "Boris Leuschke");
-            put("Cyber-sécurité", "Ahmed Bernhard");
-            put("Développement durable & RSE", "Keila Jakubowski MD");
-            put("Développement logiciel", "Chet Halvorson");
-            put("Data Science & Intelligence Artificielle", "Lesa Stehr");
-            put("Services financiers & Comptabilité", "Brady Wunsch I");
-            put("Formation & Développement", "Desmond Gottlieb");
-            put("Gestion de projet & Transformation numérique", "Treasa Cummings");
-            put("Innovation & R&D", "Dr. Talia Turner");
-            put("Management & Stratégie", "Coy Miller");
-            put("Marketing numérique", "Fermin Ebert");
-            put("Gestion des opérations & Supply Chain", "Lan Collier");
-            put("Produits & Services", "Dr. Pamula Franecki");
-            put("Ressources humaines & Talent Management", "Dario Larson");
-            put("Gestion des risques & Conformité", "Lisabeth Moen");
-            put("Support technique & Infrastructure", "Ms. Rina Donnelly");
-            put("Technologies de l'information", "Florentino Becker");
-            put("Ventes & Relations clients", "Demetrice O'Conner");
-        }};
+        Map<String, String> buToSm = new LinkedHashMap<>();
+        buToSm.put("Business Intelligence & Analytics", "Ozzie Bayer");
+        buToSm.put("Blockchain & Fintech", "Ms. Rich Treutel");
+        buToSm.put("Communication & Relations publiques", "Boris Leuschke");
+        buToSm.put("Cyber-sécurité", "Ahmed Bernhard");
+        buToSm.put("Développement durable & RSE", "Keila Jakubowski MD");
+        buToSm.put("Développement logiciel", "Chet Halvorson");
+        buToSm.put("Data Science & Intelligence Artificielle", "Lesa Stehr");
+        buToSm.put("Services financiers & Comptabilité", "Brady Wunsch I");
+        buToSm.put("Formation & Développement", "Desmond Gottlieb");
+        buToSm.put("Gestion de projet & Transformation numérique", "Treasa Cummings");
+        buToSm.put("Innovation & R&D", "Dr. Talia Turner");
+        buToSm.put("Management & Stratégie", "Coy Miller");
+        buToSm.put("Marketing numérique", "Fermin Ebert");
+        buToSm.put("Gestion des opérations & Supply Chain", "Lan Collier");
+        buToSm.put("Produits & Services", "Dr. Pamula Franecki");
+        buToSm.put("Ressources humaines & Talent Management", "Dario Larson");
+        buToSm.put("Gestion des risques & Conformité", "Lisabeth Moen");
+        buToSm.put("Support technique & Infrastructure", "Ms. Rina Donnelly");
+        buToSm.put("Technologies de l'information", "Florentino Becker");
+        buToSm.put("Ventes & Relations clients", "Demetrice O'Conner");
 
         buToSm.forEach((buName, fullName) -> {
             // Create and save Business Unit
@@ -75,7 +81,7 @@ public class StartupDataInitializer implements CommandLineRunner {
             SuperManager sm = new SuperManager();
             sm.setName(fullName);
             sm.setEmail(UserService.generateEmail(fullName));
-            sm.setPassword(passwordEncoder.encode("password"));
+            sm.setPassword(passwordEncoder.encode(defaultPassword));
             sm.setRole(Role.SUPER_MANAGER);
             sm.setStatus("Active");
             sm.setPhone(userService.getPhoneNumber());
@@ -87,6 +93,6 @@ public class StartupDataInitializer implements CommandLineRunner {
             bu.setSuperManager(sm); // optional: keep relation in sync
         });
 
-        System.out.println("✅ Seeded BusinessUnits and SuperManagers.");
+        logger.info("✅ Seeded BusinessUnits and SuperManagers.");
     }
 }

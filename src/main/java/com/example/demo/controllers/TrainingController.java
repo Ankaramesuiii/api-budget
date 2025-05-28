@@ -31,13 +31,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.example.demo.enums.BudgetType.TRAINING;
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/training")
 @RequiredArgsConstructor
 @Tag(name = "Training Import", description = "Endpoints for training data import")
 public class TrainingController {
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TrainingController.class);
     private final UsersRepository userRepository;
     private final TrainingService trainingService;
     private final PendingBudgetService pendingBudgetService;
@@ -96,7 +96,7 @@ public class TrainingController {
             response.put(type.toString(), existed ? "updated" : "set");
         });
 
-        System.out.println("Budgets: " + budgets);
+        logger.info("Budgets: {}", budgets);
         response.put("message", "sui");
         return ResponseEntity.ok(response);
     }

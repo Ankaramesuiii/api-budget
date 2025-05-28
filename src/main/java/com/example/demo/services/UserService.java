@@ -6,6 +6,7 @@ import com.example.demo.enums.Role;
 import com.example.demo.repositories.*;
 import com.github.javafaker.Faker;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +23,13 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final Faker faker = new Faker();
     private final Random random = new Random();
+    
+    @Value("${app.default.password}")
+    private String defaultPassword;
 
     public void setUserFields(Users user, String cuid, Role role) {
         user.setCuid(cuid);
-        user.setPassword(passwordEncoder.encode("password"));
+        user.setPassword(passwordEncoder.encode(defaultPassword));
         user.setEmail(generateEmail(user.getName()));
         user.setPhone(getPhoneNumber());
         user.setRole(role);

@@ -2,15 +2,13 @@ package com.example.demo.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import java.io.Serializable;
 
-import java.util.Date;
 
 @Entity
 @Data
 @Table(name = "theme")
-public class Theme {
+public class Theme implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

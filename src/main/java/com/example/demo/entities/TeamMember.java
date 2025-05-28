@@ -4,7 +4,6 @@ import com.example.demo.enums.BudgetType;
 import com.example.demo.enums.Post;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.userdetails.User;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,6 +18,7 @@ public class TeamMember extends Users {
 
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)
+    @ToString.Exclude // Exclude from toString to prevent circular reference
     private Team team;
 
     @Enumerated(EnumType.STRING)

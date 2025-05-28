@@ -8,6 +8,7 @@ public class ErrorResponse {
     }
 
     public ErrorResponse(int value, String message, String description) {
+        // to be implemented if needed
     }
 
     public String getMessage() {

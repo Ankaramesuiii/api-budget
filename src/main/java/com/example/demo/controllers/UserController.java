@@ -10,6 +10,8 @@ import com.example.demo.services.TeamMemberService;
 import com.example.demo.services.TrainingRetrievalService;
 import com.example.demo.utils.TrainingMapper;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,9 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static com.example.demo.enums.Role.TEAM_MEMBER;
 
 
 @RestController
@@ -32,6 +31,8 @@ import static com.example.demo.enums.Role.TEAM_MEMBER;
 @AllArgsConstructor
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+    
     private final UsersRepository usersRepository;
     private final TrainingMapper trainingMapper;
     private final TrainingRetrievalService trainingRetrievalService;
@@ -69,7 +70,7 @@ public class UserController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("teamMembers", teamMemberDTOs);
-        System.out.println("Team members: " + teamMemberDTOs);
+        logger.info("Team members: {}", teamMemberDTOs);
         return response;
     }
 

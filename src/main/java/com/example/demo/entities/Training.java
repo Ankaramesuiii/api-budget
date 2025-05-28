@@ -3,13 +3,14 @@ package com.example.demo.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "training")
-public class Training {
+public class Training implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

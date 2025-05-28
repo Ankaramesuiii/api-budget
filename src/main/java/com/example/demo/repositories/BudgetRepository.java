@@ -21,6 +21,6 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
     void updateRemainingBudget(@Param("teamId") Long teamId, @Param("amount") Double amount);
 
     Optional<Budget> findByTeamAndType(Team team, BudgetType type);
-    Optional<Budget> findByTeamIdAndType(int team_id, BudgetType type);
+    Optional<Budget> findByTeamIdAndType(int teamId, BudgetType type);
 
 }

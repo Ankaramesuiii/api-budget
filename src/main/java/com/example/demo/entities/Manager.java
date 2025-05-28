@@ -3,6 +3,7 @@ package com.example.demo.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Setter
 @Getter
@@ -12,9 +13,11 @@ public class Manager extends Users {
 
     @ManyToOne
     @JoinColumn(name = "super_manager_id", nullable = false)
+    @ToString.Exclude // Exclude from toString to prevent circular reference
     private SuperManager superManager; // Each Manager reports to a SuperManager
 
     @OneToOne(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude // Exclude from toString to prevent circular reference
     private Team team; // Each Manager manages one Team
 
     // Constructors

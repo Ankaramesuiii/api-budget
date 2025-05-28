@@ -4,6 +4,7 @@ import com.example.demo.enums.BudgetType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
 @Table(name = "team")
 @NoArgsConstructor
 @ToString
-public class Team {
+public class Team implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,9 +27,11 @@ public class Team {
 
     @OneToOne
     @JoinColumn(name = "manager_id", nullable = false)
+    @ToString.Exclude // Exclude from toString to prevent circular reference
     private Manager manager; // Each Team is managed by one Manager
 
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @ToString.Exclude // Exclude from toString to prevent circular reference
     private List<TeamMember> teamMembers; // List of team members
 
     @OneToMany(mappedBy = "team")

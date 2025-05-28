@@ -5,9 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,12 +22,12 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import static java.lang.System.out;
-
 @RestController
 @RequestMapping("/serpapi")
 @Tag(name = "SerpAPI Proxy", description = "Proxies requests to SerpAPI for flights and hotels")
 public class SerpApiProxyController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(SerpApiProxyController.class);
 
     @Value("${serpapi.key}")
     private String serpApiKey;
@@ -52,11 +53,11 @@ public class SerpApiProxyController {
             @Parameter(description = "Trip type: 1 for round-trip, 2 for one-way") @RequestParam(name = "type", defaultValue = "1") int type,
             @Parameter(description = "Google location (gl) parameter") @RequestParam(name = "gl") String gl,
             @Parameter(description = "Google language (hl) parameter") @RequestParam(name = "hl") String hl,
-            @Parameter(description = "Sorting method (e.g., 2 for best flights)") @RequestParam(name = "sort_by",defaultValue = "2") int sort_by,
+            @Parameter(description = "Sorting method (e.g., 2 for best flights)") @RequestParam(name = "sort_by",defaultValue = "2") int sortBy,
             @Parameter(description = "Optional token for fetching return flights") @RequestParam(name= "departure_token", required = false) String departureToken) {
 
         try {
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(serpapiUrl)
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(serpapiUrl)
                     .queryParam("engine", "google_flights")
                     .queryParam("departure_id", departureId)
                     .queryParam("arrival_id", arrivalId)
@@ -66,7 +67,7 @@ public class SerpApiProxyController {
                     .queryParam("currency", "EUR")
                     .queryParam("hl", hl)
                     .queryParam("gl", gl)
-                    .queryParam("sort_by", sort_by)
+                    .queryParam("sort_by", sortBy)
                     .queryParam("api_key", serpApiKey);
 
             if (type == 1 && (returnDate == null || returnDate.isEmpty())) {
@@ -78,12 +79,12 @@ public class SerpApiProxyController {
             }
             if (departureToken != null && !departureToken.isEmpty()) {
                 builder.queryParam("departure_token", UriUtils.encode(departureToken, StandardCharsets.UTF_8));
-                out.println("departure_token: " + departureToken);
+                logger.debug("departure_token: {}", departureToken);
             }
 
             URI uri = builder.build(true).toUri(); // preserve existing encoding (no double encoding)
             String result = restTemplate.getForObject(uri, String.class);
-            out.println("SerpAPI URL: " + uri.toString());
+            logger.debug("SerpAPI URL: {}", uri);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error calling SerpAPI: " + e.getMessage());
@@ -92,7 +93,7 @@ public class SerpApiProxyController {
 
     @Operation(summary = "Search hotels using SerpAPI")
     @GetMapping("/hotels/search")
-    public ResponseEntity<?> searchHotels(
+    public ResponseEntity<Object> searchHotels(
             @Parameter(description = "Search query (e.g., city or hotel name)") @RequestParam(name = "q") String query,
             @Parameter(description = "Check-in date (YYYY-MM-DD)") @RequestParam(name = "check_in_date") String checkInDate,
             @Parameter(description = "Check-out date (YYYY-MM-DD)") @RequestParam(name = "check_out_date") String checkOutDate,
@@ -103,7 +104,7 @@ public class SerpApiProxyController {
             @Parameter(description = "Currency (e.g., EUR)") @RequestParam(name = "currency", defaultValue = "EUR") String currency
     ) {
         try {
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(serpapiUrl)
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(serpapiUrl)
                     .queryParam("engine", "google_hotels")
                     .queryParam("q", URLEncoder.encode(query, StandardCharsets.UTF_8))
                     .queryParam("check_in_date", checkInDate)
@@ -120,17 +121,16 @@ public class SerpApiProxyController {
             }
 
             URI uri = builder.build(true).toUri();
-            out.println("Hotels SerpAPI URL: " + uri);
+            logger.debug("Hotels SerpAPI URL: {}", uri);
 
             String result = restTemplate.getForObject(uri, String.class);
-            out.println(result);
+            logger.debug("SerpAPI hotel response: {}", result);
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode root = objectMapper.readTree(result);
 
             JsonNode properties = root.path("properties");
 
             if (properties.isMissingNode() || !properties.isArray()) {
-               // return ResponseEntity.badRequest().body("No 'properties' array found in SerpAPI response.");
                 return ResponseEntity.ok(result);
             }
             return ResponseEntity.ok(properties);
