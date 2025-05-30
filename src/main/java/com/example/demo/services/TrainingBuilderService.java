@@ -8,13 +8,21 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
 @AllArgsConstructor
 public class TrainingBuilderService {
 
+    private static final List<DateTimeFormatter> DATE_FORMATTERS = List.of(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+            DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.FRENCH)
+    );
     private final ThemeService themeService;
     public Training createTrainingFromRow(Map<String, String> row, TeamMember member) {
         try {
@@ -48,12 +56,21 @@ public class TrainingBuilderService {
         return themeService.getOrCreate(themeName);
     }
 
-    private LocalDate parseDate(String dateString) {
-        try {
-            return LocalDate.parse(dateString);
-        } catch (DateTimeParseException e) {
-            throw new InvalidTrainingDataException("Invalid date format: " + dateString);
+    public static LocalDate parseDate(String dateString) {
+        // Clean up localized month names like "janv." to "janv"
+        if (dateString != null) {
+            dateString = dateString.replaceAll("(\\p{L}+)[.]", "$1");
         }
+
+        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
+            try {
+                return LocalDate.parse(dateString, formatter);
+            } catch (DateTimeParseException ignored) {
+                // Try next format
+            }
+        }
+
+        throw new InvalidTrainingDataException("Invalid date format: " + dateString);
     }
 
     private int parseInt(String number) {

@@ -22,5 +22,8 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
 
     Optional<Budget> findByTeamAndType(Team team, BudgetType type);
     Optional<Budget> findByTeamIdAndType(int teamId, BudgetType type);
+    
+    Optional<Budget> findByTeamAndTypeAndYear(Team team, BudgetType type, int year);
+    Optional<Budget> findByTeamIdAndTypeAndYear(int teamId, BudgetType type, int year);
 
 }

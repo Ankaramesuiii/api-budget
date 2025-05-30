@@ -16,8 +16,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Table(name = "budget",
         uniqueConstraints = @UniqueConstraint(
-                name = "UK_budget_team_type",
-                columnNames = {"team_id", "type"}))
+                name = "UK_budget_team_type_year",
+                columnNames = {"team_id", "type", "year"})) // Updated constraint name and columns
 public class Budget implements Serializable {
 
     @Id
@@ -26,17 +26,20 @@ public class Budget implements Serializable {
     private int id;
 
     @Column(nullable = false)
-    private double totalBudget; // Total budget allocated to the team
+    private double totalBudget;
 
     @Column(nullable = false)
-    private double remainingBudget; // Remaining budget after deducting training costs
+    private double remainingBudget;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private BudgetType type;
 
     @Column(nullable = false)
-    private double budgetPerMember;      // Evenly divided budget per team member (e.g., 10,000 TND/member)
+    private double budgetPerMember;
+
+    @Column(nullable = false)
+    private int year;  // Added year column
 
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)

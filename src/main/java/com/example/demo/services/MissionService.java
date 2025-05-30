@@ -49,9 +49,7 @@ public class MissionService {
                     .orElseThrow(() -> new IllegalArgumentException("Team member not found: " + id));
 
             BigDecimal remaining = member.getMissionBudgetRemaining();
-            if (remaining.compareTo(BigDecimal.valueOf(costPerMember)) < 0) {
-                throw new IllegalArgumentException("Not enough mission budget for team member: " + id);
-            }
+
 
             // Create mission
             Mission mission = new Mission();
@@ -61,9 +59,15 @@ public class MissionService {
             mission.setEndDate(request.getEndDate());
             mission.setReason(request.getReason());
             mission.setCost(costPerMember);
+            double duree = request.getEndDate().getDayOfYear() - request.getStartDate().getDayOfYear();
 
+            mission.setPerdiem(150*duree);
+            mission.setSimCost(60.00); // Default value, can be overridden
+            mission.setVisaPrice(300.00); // Default value, can be overridden
+
+            double totalMissionCost = costPerMember + mission.getPerdiem() + mission.getSimCost() + mission.getVisaPrice();
             // Deduct from individual budget
-            member.setMissionBudgetRemaining(remaining.subtract(BigDecimal.valueOf(costPerMember)));
+            member.setMissionBudgetRemaining(remaining.subtract(BigDecimal.valueOf(totalMissionCost)));
 
             missionRepository.save(mission);
             teamMemberRepository.save(member);
@@ -73,11 +77,9 @@ public class MissionService {
                     .orElseThrow(() -> new IllegalArgumentException("No mission budget found for team."));
 
             double teamRemaining = teamMissionBudget.getRemainingBudget();
-            if (BigDecimal.valueOf(teamRemaining).compareTo(BigDecimal.valueOf(costPerMember)) < 0) {
-                throw new IllegalArgumentException("Not enough team mission budget.");
-            }
 
-            teamMissionBudget.setRemainingBudget(teamRemaining - costPerMember);
+
+            teamMissionBudget.setRemainingBudget(teamRemaining - totalMissionCost);
             budgetRepository.save(teamMissionBudget);
         }
     }

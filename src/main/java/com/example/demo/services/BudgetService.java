@@ -19,7 +19,7 @@ import java.util.Map;
 public class BudgetService {
     private final BudgetRepository budgetRepository;
 
-    public Budget getOrCreateBudget(Team team, BudgetType type, double totalBudget, double perMemberBudget) {
+    public Budget getOrCreateBudget(Team team, BudgetType type, double totalBudget, double perMemberBudget, int year) {
         return budgetRepository.findByTeamAndType(team, type)
                 .orElseGet(() -> {
                     Budget newBudget = new Budget();
@@ -28,6 +28,7 @@ public class BudgetService {
                     newBudget.setTotalBudget(totalBudget);
                     newBudget.setRemainingBudget(totalBudget);
                     newBudget.setBudgetPerMember(perMemberBudget);
+                    newBudget.setYear(year);
                     team.getBudgets().add(newBudget);
                     return budgetRepository.save(newBudget);
                 });

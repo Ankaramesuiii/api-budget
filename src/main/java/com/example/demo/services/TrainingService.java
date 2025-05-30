@@ -37,9 +37,9 @@ public class TrainingService {
     private final PendingBudgetService pendingBudgetService;
     private final TrainingRepository trainingRepository;
 
-    public TrainingImportResult processExcelFile(MultipartFile file, Users user) throws IOException {
+    public TrainingImportResult processExcelFile(MultipartFile file, Users user, int year) throws IOException {
         validateFile(file);
-        Map<BudgetType, Double> budgetsByDirector = getDirectorBudgets(user);
+        Map<BudgetType, Double> budgetsByDirector = getDirectorBudgets(user, year);
         List<Map<String, String>> rows = excelService.readExcelFile(file);
 
         validateDirector(rows, user);
@@ -53,7 +53,8 @@ public class TrainingService {
                 rows,
                 user,
                 perMemberBudgets,
-                budgetsByDirector
+                budgetsByDirector,
+                year
         );
 
         trainingRepository.saveAll(trainings);
@@ -74,8 +75,8 @@ public class TrainingService {
         }
     }
 
-    private Map<BudgetType, Double> getDirectorBudgets(Users user) {
-        Map<BudgetType, Double> budgets = pendingBudgetService.getBudgetsByDirector(user.getEmail());
+    private Map<BudgetType, Double> getDirectorBudgets(Users user, int year) {
+        Map<BudgetType, Double> budgets = pendingBudgetService.getBudgetsByDirectorAndYear(user.getEmail(), year);
         if (budgets.isEmpty()) {
             throw new InvalidInputException("Aucun budget trouvé pour cet utilisateur");
         }
@@ -106,7 +107,8 @@ public class TrainingService {
             List<Map<String, String>> rows,
             Users user,
             Map<BudgetType, BigDecimal> perMemberBudgets,
-            Map<BudgetType, Double> budgetsByDirector
+            Map<BudgetType, Double> budgetsByDirector,
+            int year
     ) {
         List<Training> trainings = new ArrayList<>();
         Map<String, List<Map<String, String>>> rowsByManager = rows.stream()
@@ -114,7 +116,7 @@ public class TrainingService {
 
         for (Map.Entry<String, List<Map<String, String>>> entry : rowsByManager.entrySet()) {
             Team team = teamService.getOrCreateTeam(entry.getKey(), (SuperManager) user);
-            processTeamRows(entry.getValue(), team, perMemberBudgets, budgetsByDirector, trainings);
+            processTeamRows(entry.getValue(), team, perMemberBudgets, budgetsByDirector, trainings, year);
         }
         return trainings;
     }
@@ -124,13 +126,14 @@ public class TrainingService {
             Team team,
             Map<BudgetType, BigDecimal> perMemberBudgets,
             Map<BudgetType, Double> budgetsByDirector,
-            List<Training> trainings
+            List<Training> trainings,
+            int year
     ) {
         Set<String> memberNames = rows.stream()
                 .map(r -> r.get("Nom/Prénom"))
                 .collect(Collectors.toSet());
 
-        initializeTeamBudgets(team, memberNames.size(), perMemberBudgets, budgetsByDirector);
+        initializeTeamBudgets(team, memberNames.size(), perMemberBudgets, budgetsByDirector,year);
 
         BigDecimal teamTrainingCost = BigDecimal.ZERO;
         for (Map<String, String> row : rows) {
@@ -144,7 +147,8 @@ public class TrainingService {
             Team team,
             int memberCount,
             Map<BudgetType, BigDecimal> perMemberBudgets,
-            Map<BudgetType, Double> budgetsByDirector
+            Map<BudgetType, Double> budgetsByDirector,
+            int year
     ) {
         for (BudgetType type : budgetsByDirector.keySet()) {
             BigDecimal teamBudget = perMemberBudgets.get(type).multiply(BigDecimal.valueOf(memberCount));
@@ -152,7 +156,8 @@ public class TrainingService {
                     team,
                     type,
                     teamBudget.doubleValue(),
-                    perMemberBudgets.get(type).doubleValue()
+                    perMemberBudgets.get(type).doubleValue(),
+                    year
             );
         }
     }

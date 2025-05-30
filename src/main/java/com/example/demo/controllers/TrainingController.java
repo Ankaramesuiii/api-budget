@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -54,7 +55,7 @@ public class TrainingController {
             summary = "Upload budgets for different types",
             description = "Upload budgets for FORMATION, VOYAGE, and AUTRE before importing team data",
             requestBody = @RequestBody(
-                    description = "Budget values for different types",
+                    description = "Budget values for different types including year",
                     required = true,
                     content = @Content(
                             mediaType = "application/json",
@@ -69,77 +70,120 @@ public class TrainingController {
     )
     @PostMapping("/upload-budgets")
     public ResponseEntity<Map<String, String>> uploadBudgets(
-            @Parameter(description = "Budget data for different types", required = true)
-            @org.springframework.web.bind.annotation.RequestBody BudgetSubmissionDTO budgets
+            @Parameter(description = "Budget data including year", required = true)
+            @org.springframework.web.bind.annotation.RequestBody BudgetSubmissionDTO budgetSubmission,
+            HttpServletRequest request
     ) {
         checkAuthentication();
 
         // Validate input
+        if (Objects.isNull(budgetSubmission) ||
+                Objects.isNull(budgetSubmission.getBudgets()) ||
+                budgetSubmission.getBudgets().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Au moins un budget doit être fourni");
+        }
 
-        if (Objects.isNull(budgets) || Objects.isNull(budgets.getBudgets()) || budgets.getBudgets().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one budget type must be provided");
+        // Validate year (example: between 2000-2100)
+        if (budgetSubmission.getYear() < 2000 || budgetSubmission.getYear() > 2100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Année doit être entre 2000 et 2100");
         }
 
         Users user = getUser();
         Map<String, String> response = new HashMap<>();
 
-        // Process each budget type
-        budgets.getBudgets().forEach((type, amount) -> {
+        // Process each budget type with year
+        budgetSubmission.getBudgets().forEach((type, amount) -> {
             if (amount == null || amount < 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Budget for " + type + " must be greater than 0");
+                        "Budget pour " + type + " ne pas être négatif ou nul");
             }
 
-            boolean existed = pendingBudgetService.getBudget(user.getEmail(), type).isPresent();
-            pendingBudgetService.setOrUpdateBudget(user.getEmail(), BigDecimal.valueOf(amount), type);
+            boolean existed = pendingBudgetService.getBudget(
+                    user.getEmail(),
+                    type,
+                    budgetSubmission.getYear()
+            ).isPresent();
+
+            pendingBudgetService.setOrUpdateBudget(
+                    user.getEmail(),
+                    BigDecimal.valueOf(amount),
+                    type,
+                    budgetSubmission.getYear()
+            );
 
             response.put(type.toString(), existed ? "updated" : "set");
         });
 
-        logger.info("Budgets: {}", budgets);
-        response.put("message", "sui");
+        logger.info("Budgets submitted for year {}: {}", budgetSubmission.getYear(), budgetSubmission.getBudgets());
+        response.put("message", "Budgets enregistrés avec succès");
+        response.put("year", String.valueOf(budgetSubmission.getYear()));
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "Get pending budgets by year",
+            description = "Retrieve all pending budgets for the authenticated director in a specific year"
+    )
     @GetMapping("/budgets")
-    public ResponseEntity<Map<BudgetType, Double>> getBudgets() {
+    public ResponseEntity<Map<BudgetType, Double>> getBudgets(
+            @Parameter(description = "Year to filter budgets", required = true)
+            @RequestParam int year
+    ) {
         checkAuthentication();
         Users user = getUser();
-        Map<BudgetType, Double> budgets = pendingBudgetService.getBudgetsByDirector(user.getEmail());
+
+        Map<BudgetType, Double> budgets = pendingBudgetService.getBudgetsByDirectorAndYear(
+                user.getEmail(),
+                year
+        );
+
         return ResponseEntity.ok(budgets);
     }
 
     @Operation(
             summary = "Import training data from Excel",
-            description = "Upload an Excel file after uploading the budget",
+            description = "Upload an Excel file after uploading the budget for a specific year",
             requestBody = @RequestBody(
-                    description = "Multipart form with Excel file",
+                    description = "Multipart form with Excel file and year",
                     required = true,
-                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE
+                    )
             ),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Training data imported"),
                     @ApiResponse(responseCode = "400", description = "Bad request"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "404", description = "User not found")
+                    @ApiResponse(responseCode = "404", description = "User/Budget not found")
             }
     )
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> importTrainingData(
             @Parameter(description = "Excel file to import training data", required = true)
-            @RequestPart("file") MultipartFile file
+            @RequestPart("file") MultipartFile file,
+
+            @Parameter(description = "Year for budget validation", required = true)
+            @RequestParam("year") int year
     ) throws IOException {
         checkAuthentication();
         checkFile(file);
+
+        // Validate year
+        if (year < 2000 || year > 2100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Year must be between 2000 and 2100");
+        }
 
         Users user = getUser();
         Map<String, String> response = new HashMap<>();
 
         long startTime = System.currentTimeMillis();
-        TrainingImportResult result = trainingService.processExcelFile(file, user);
+        TrainingImportResult result = trainingService.processExcelFile(file, user, year); // Updated service call
         long duration = System.currentTimeMillis() - startTime;
 
-        response.put("message", String.format(" %d lignes importées en %d ms.", result.processedRows(), duration));
+        response.put("year", String.valueOf(year));
+        response.put("message", String.format("%d rows imported in %d ms", result.processedRows(), duration));
+        response.put("processedRows", String.valueOf(result.processedRows()));
+        response.put("durationMs", String.valueOf(duration));
 
         if (result.budgetWarningMessage() != null) {
             response.put("warning", result.budgetWarningMessage());
@@ -147,7 +191,6 @@ public class TrainingController {
 
         return ResponseEntity.ok(response);
     }
-
 
     private Users getUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

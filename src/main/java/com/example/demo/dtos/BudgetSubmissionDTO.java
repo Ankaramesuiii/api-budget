@@ -12,5 +12,6 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BudgetSubmissionDTO {
+    private int year;
     private Map<BudgetType, Double> budgets;
 }
