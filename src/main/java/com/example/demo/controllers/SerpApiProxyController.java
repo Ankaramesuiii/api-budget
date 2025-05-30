@@ -79,12 +79,10 @@ public class SerpApiProxyController {
             }
             if (departureToken != null && !departureToken.isEmpty()) {
                 builder.queryParam("departure_token", UriUtils.encode(departureToken, StandardCharsets.UTF_8));
-                logger.debug("departure_token: {}", departureToken);
             }
 
             URI uri = builder.build(true).toUri(); // preserve existing encoding (no double encoding)
             String result = restTemplate.getForObject(uri, String.class);
-            logger.debug("SerpAPI URL: {}", uri);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error calling SerpAPI: " + e.getMessage());
@@ -124,7 +122,7 @@ public class SerpApiProxyController {
             logger.debug("Hotels SerpAPI URL: {}", uri);
 
             String result = restTemplate.getForObject(uri, String.class);
-            logger.debug("SerpAPI hotel response: {}", result);
+
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode root = objectMapper.readTree(result);
 
