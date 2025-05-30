@@ -7,14 +7,16 @@ on:
   pull_request:
     branches:
       - test_ppl
+  workflow_dispatch:  # Allows triggering manual jar build
 
 jobs:
   ci:
     name: CI Spring Boot + MSSQL
     runs-on: ubuntu-latest
+
     services:
       mssql:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: mcr.microsoft.com/mssql/server:2019-latest
         env:
           SA_PASSWORD: "Your_password123"
           ACCEPT_EULA: "Y"
@@ -64,7 +66,7 @@ jobs:
           name: dependency-check-report
           path: dependency-check-report
 
-      - name: SonarQube Scan
+      - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v2
         with:
           projectBaseDir: .
@@ -72,9 +74,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   manual-build:
-    name: Manual Jar Build
+    name: Manual JAR Build
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -85,10 +88,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build Jar
+      - name: Build JAR
         run: mvn clean package -DskipTests
 
-      - name: Upload Jar
+      - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: spring-boot-app-jar
