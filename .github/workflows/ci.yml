@@ -18,24 +18,23 @@ jobs:
       mssql:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
-          SA_PASSWORD: "Your_password123"
+          SA_PASSWORD: "Ankaramesui1@1@"
           ACCEPT_EULA: "Y"
+          MSSQL_PID: "Developer"
         ports:
           - 1433:1433
         options: >-
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U sa -P 'Your_password123' -Q 'SELECT 1'" 
-          --health-interval 10s 
-          --health-timeout 10s 
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Ankaramesui1@1@' -Q 'SELECT 1' || exit 1"
+          --health-interval 10s
+          --health-timeout 30s
           --health-retries 10
-
-    env:
-      DB_URL: jdbc:sqlserver://localhost:1433;databaseName=testdb
-      DB_USERNAME: sa
-      DB_PASSWORD: Your_password123
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Wait for MSSQL
+        run: sleep 30
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
