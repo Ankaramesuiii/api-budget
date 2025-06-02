@@ -57,10 +57,6 @@ public class TrainingBuilderService {
     }
 
     public static LocalDate parseDate(String dateString) {
-        // Clean up localized month names like "janv." to "janv"
-        if (dateString != null) {
-            dateString = dateString.replaceAll("(\\p{L}+)[.]", "$1");
-        }
 
         for (DateTimeFormatter formatter : DATE_FORMATTERS) {
             try {
