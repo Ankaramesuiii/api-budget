@@ -52,7 +52,8 @@ jobs:
           format: "HTML"
           out: "dependency-check-report"
             # Add Java path explicitly
-          args: --jvmargs "-Djava.home=${{ env.JAVA_HOME }}"
+          args: --jvmargs "-Djava.home==/opt/jdk"
+
 
       - name: Upload Dependency Report
         uses: actions/upload-artifact@v4
