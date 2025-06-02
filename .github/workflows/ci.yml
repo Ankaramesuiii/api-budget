@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - test_ppl
-  workflow_dispatch:  # Allows triggering manual jar build
+  workflow_dispatch:
 
 env:
   SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
@@ -22,13 +22,13 @@ jobs:
       mssql:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
-          SA_PASSWORD: ${{ env.SA_PASSWORD }}
+          SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
           ACCEPT_EULA: "Y"
           MSSQL_PID: "Developer"
         ports:
           - 1433:1433
         options: >-
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{ env.SA_PASSWORD }}' -Q 'SELECT 1'"
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{ secrets.MSSQL_SA_PASSWORD }}' -Q 'SELECT 1'"
           --health-interval 10s
           --health-timeout 30s
           --health-retries 10
@@ -41,7 +41,7 @@ jobs:
       - name: Verify MSSQL Connection
         run: |
           for i in {1..10}; do
-            if /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${{ env.SA_PASSWORD }}" -Q "SELECT 1"; then
+            if /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${{ secrets.MSSQL_SA_PASSWORD }}" -Q "SELECT 1"; then
               echo "SQL Server ready"
               break
             fi
@@ -65,7 +65,7 @@ jobs:
           restore-keys: ${{ runner.os }}-maven
 
       - name: Run Tests with DB
-        run: mvn test -Dspring.datasource.url=${{ env.DB_URL }} -Dspring.datasource.username=sa -Dspring.datasource.password=${{ env.SA_PASSWORD }}
+        run: mvn test -Dspring.datasource.url=${{ env.DB_URL }} -Dspring.datasource.username=sa -Dspring.datasource.password=${{ secrets.MSSQL_SA_PASSWORD }}
 
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
@@ -85,7 +85,6 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v2
         with:
           projectBaseDir: .
-          failOnError: false
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -104,7 +103,6 @@ jobs:
   manual-build:
     name: Manual JAR Build
     runs-on: ubuntu-latest
-    needs: ci
     if: github.event_name == 'workflow_dispatch'
 
     steps:
