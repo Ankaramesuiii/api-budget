@@ -66,7 +66,7 @@ jobs:
         with:
           projectBaseDir: .
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ vars.SONAR_TOKEN }}
 
   build-deploy:
     name: Build and Deploy API
