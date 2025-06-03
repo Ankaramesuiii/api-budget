@@ -61,17 +61,8 @@ jobs:
       #    name: dependency-check-report
       #    path: dependency-check-report
 
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@v2
-        with:
-          projectBaseDir: .
-          args: >
-            -Dsonar.projectKey=Ankaramesuiii_api-budget
-            -Dsonar.organization=Ankaramesuiii
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.java.binaries=target
-        env:
-          SONAR_TOKEN: ${{ vars.SONAR_TOKEN }}
+      - name: SonarCloud Analysis with Maven
+        run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Ankaramesuiii_api-budget -Dsonar.organization=ankaramesuiii -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   build-deploy:
     name: Build and Deploy API
