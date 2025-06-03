@@ -66,7 +66,7 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.projectKey=mon-Ankaramesuiii
+            -Dsonar.projectKey=Ankaramesuiii
             -Dsonar.organization=api-budget
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.java.binaries=target
