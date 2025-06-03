@@ -65,6 +65,11 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v2
         with:
           projectBaseDir: .
+          args: >
+            -Dsonar.projectKey=mon-Ankaramesuiii
+            -Dsonar.organization=api-budget
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.java.binaries=target
         env:
           SONAR_TOKEN: ${{ vars.SONAR_TOKEN }}
 
