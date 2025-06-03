@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch:  # This enables manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
   test-with-mssql:
