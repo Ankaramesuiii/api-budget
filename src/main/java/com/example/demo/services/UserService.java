@@ -3,8 +3,6 @@ package com.example.demo.services;
 import com.example.demo.entities.*;
 import com.example.demo.enums.Post;
 import com.example.demo.enums.Role;
-import com.example.demo.repositories.*;
-import com.github.javafaker.Faker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,11 +15,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final SuperManagerRepository superManagerRepository;
-    private final ManagerRepository managerRepository;
-    private final TeamMemberRepository teamMemberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final Faker faker = new Faker();
     private final Random random = new Random();
     
     @Value("${app.default.password}")
@@ -45,7 +39,7 @@ public class UserService {
         String first = parts[0].toLowerCase();
         String last = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
 
-        return first + "." + last + "@sofrecom.com";
+        return first + "." + last + "@test.com";
     }
 
 
