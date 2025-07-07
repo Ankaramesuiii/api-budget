@@ -3,11 +3,13 @@ package com.example.demo.entities;
 import com.example.demo.enums.BudgetType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Setter
 @Getter
 @Entity
@@ -43,6 +45,15 @@ public class Team implements Serializable {
                 .findFirst()
                 .orElse(null); // or throw an exception if needed
     }
+
+    public Budget getBudgetByTypeAndYear(BudgetType type, int year) {
+        log.info("Looking for type: {}, year: {}", type, year);
+        return budgets.stream()
+                .filter(b -> b.getType() == type && b.getYear() == year)
+                .findFirst()
+                .orElse(null);
+    }
+
 
     public Team(String name, Manager manager) {
         this.name = name;

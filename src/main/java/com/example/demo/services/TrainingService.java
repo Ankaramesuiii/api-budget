@@ -3,17 +3,14 @@ package com.example.demo.services;
 import com.example.demo.dtos.TrainingImportResult;
 import com.example.demo.entities.*;
 import com.example.demo.enums.BudgetType;
-import com.example.demo.enums.Role;
+
 import com.example.demo.exceptions.FileMissingException;
 import com.example.demo.exceptions.InvalidDirectorException;
 import com.example.demo.exceptions.InvalidInputException;
 import com.example.demo.repositories.*;
-import com.github.javafaker.Faker;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,10 +18,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.example.demo.enums.BudgetType.*;
+@Slf4j
 @Service
 @Transactional
 @AllArgsConstructor
@@ -80,6 +77,7 @@ public class TrainingService {
         if (budgets.isEmpty()) {
             throw new InvalidInputException("Aucun budget trouvé pour cet utilisateur");
         }
+        log.info("Budgets for director: {}", budgets);
         return budgets;
     }
 
@@ -138,7 +136,7 @@ public class TrainingService {
         BigDecimal teamTrainingCost = BigDecimal.ZERO;
         for (Map<String, String> row : rows) {
             TeamMember member = teamMemberService.getOrCreateMember(row, team, perMemberBudgets);
-            Optional<Training> training = processTraining(row, member, team, teamTrainingCost);
+            Optional<Training> training = processTraining(row, member, team, teamTrainingCost, year);
             training.ifPresent(trainings::add);
         }
     }
@@ -160,13 +158,15 @@ public class TrainingService {
                     year
             );
         }
+
     }
 
     private Optional<Training> processTraining(
             Map<String, String> row,
             TeamMember member,
             Team team,
-            BigDecimal teamTrainingCost
+            BigDecimal teamTrainingCost,
+            int year
     ) {
         Optional<Training> existing = trainingRepository.findByCodeSessionAndTeamMember(
                 row.get("Code session"), member
@@ -181,7 +181,7 @@ public class TrainingService {
             return Optional.empty();
         }
 
-        processTrainingBudget(training, member, team, teamTrainingCost);
+        processTrainingBudget(training, member, team, teamTrainingCost, year);
         return Optional.of(training);
     }
 
@@ -189,7 +189,8 @@ public class TrainingService {
             Training training,
             TeamMember member,
             Team team,
-            BigDecimal teamTrainingCost
+            BigDecimal teamTrainingCost,
+            int year
     ) {
         double cost = training.getPriceTND();
 
@@ -199,7 +200,7 @@ public class TrainingService {
         );
 
         // Update team budget
-        Budget trainingBudget = team.getBudgetByType(TRAINING);
+        Budget trainingBudget = team.getBudgetByTypeAndYear(TRAINING, year);
         BigDecimal updatedRemaining = BigDecimal.valueOf(trainingBudget.getRemainingBudget())
                 .subtract(BigDecimal.valueOf(cost));
         budgetService.updateBudget(trainingBudget, updatedRemaining.doubleValue());

@@ -20,7 +20,7 @@ public class BudgetService {
     private final BudgetRepository budgetRepository;
 
     public Budget getOrCreateBudget(Team team, BudgetType type, double totalBudget, double perMemberBudget, int year) {
-        return budgetRepository.findByTeamAndType(team, type)
+        return budgetRepository.findByTeamAndTypeAndYear(team, type, year)
                 .orElseGet(() -> {
                     Budget newBudget = new Budget();
                     newBudget.setTeam(team);

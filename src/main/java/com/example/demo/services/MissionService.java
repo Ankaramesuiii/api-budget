@@ -59,7 +59,7 @@ public class MissionService {
             mission.setEndDate(request.getEndDate());
             mission.setReason(request.getReason());
             mission.setCost(costPerMember);
-            double duree = request.getEndDate().getDayOfYear() - request.getStartDate().getDayOfYear();
+            double duree = (double) request.getEndDate().getDayOfYear() - request.getStartDate().getDayOfYear();
 
             mission.setPerdiem(150*duree);
             mission.setSimCost(60.00); // Default value, can be overridden
@@ -73,7 +73,7 @@ public class MissionService {
             teamMemberRepository.save(member);
 
             // Optional: Also deduct from team-level mission budget
-            Budget teamMissionBudget = budgetRepository.findByTeamAndType(member.getTeam(), BudgetType.MISSION)
+            Budget teamMissionBudget = budgetRepository.findByTeamAndTypeAndYear(member.getTeam(), BudgetType.MISSION,request.getStartDate().getYear())
                     .orElseThrow(() -> new IllegalArgumentException("No mission budget found for team."));
 
             double teamRemaining = teamMissionBudget.getRemainingBudget();

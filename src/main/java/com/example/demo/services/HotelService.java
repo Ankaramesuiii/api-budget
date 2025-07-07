@@ -80,8 +80,8 @@ public class HotelService {
             hotelRepository.save(hotel);
 
             // Update team budget (unchanged)
-            Budget teamMissionBudget = budgetRepository.findByTeamAndType(
-                            member.getTeam(), BudgetType.MISSION)
+            Budget teamMissionBudget = budgetRepository.findByTeamAndTypeAndYear(
+                            member.getTeam(), BudgetType.MISSION, request.getCheckIn().getYear())
                     .orElseThrow(() -> new IllegalArgumentException("No mission budget found for team."));
             teamMissionBudget.setRemainingBudget(teamMissionBudget.getRemainingBudget() - costPerMember);
         }

@@ -4,6 +4,10 @@ import com.example.demo.entities.Users;
 import com.example.demo.exceptions.UnauthorizedException;
 import com.example.demo.services.auth.AuthService;
 import com.example.demo.services.auth.JwtService;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +26,8 @@ import java.util.Map;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Authentification", description = "Points d’entrée pour s’enregistrer, se connecter et se déconnecter")
+
 public class AuthController {
     SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
 
@@ -29,6 +35,9 @@ public class AuthController {
     private final JwtService jwtService;
 
 
+    @Hidden
+    @Operation(summary = "Enregistrer un nouvel utilisateur")
+    @ApiResponse(responseCode = "200", description = "Utilisateur enregistré avec succès")
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody Users user) {
         log.info("Registering user: {}", user);
@@ -37,13 +46,16 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully");
     }
 
+    @Operation(summary = "Connexion et récupération du token JWT")
+    @ApiResponse(responseCode = "200", description = "Token JWT renvoyé")
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody Users user) {
         String token = authService.login(user);
         return ResponseEntity.ok(token);
     }
 
-
+    @Operation(summary = "Déconnexion de l'utilisateur actuel")
+    @ApiResponse(responseCode = "200", description = "Utilisateur déconnecté avec succès")
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
         // Perform logout
