@@ -1,6 +1,7 @@
 package com.example.demo.entities;
 
 import com.example.demo.enums.BudgetType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +31,12 @@ public class Team implements Serializable {
     @OneToOne
     @JoinColumn(name = "manager_id", nullable = false)
     @ToString.Exclude // Exclude from toString to prevent circular reference
+    @JsonIgnore
     private Manager manager; // Each Team is managed by one Manager
 
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @ToString.Exclude // Exclude from toString to prevent circular reference
+    @JsonIgnore
     private List<TeamMember> teamMembers; // List of team members
 
     @OneToMany(mappedBy = "team")
