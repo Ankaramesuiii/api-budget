@@ -87,3 +87,4 @@ jobs:
           app-name: 'api-budget'
           slot-name: 'Production'
           package: '*.jar'
+          startup-command: 'java -Dspring.profiles.active=prod -jar api-budget.jar'
