@@ -53,11 +53,11 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: prod
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: target/*.jar
 
       - name: SonarCloud Analysis with Maven
         run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Ankaramesuiii_api-budget -Dsonar.organization=ankaramesuiii -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ vars.SONAR_TOKEN }}
@@ -76,9 +76,6 @@ jobs:
           name: java-app
           path: app
 
-      - name: Move JAR to root
-        run: mv app/target/*.jar .
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -91,5 +88,5 @@ jobs:
         with:
           app-name: 'api-budget'
           slot-name: 'Production'
-          package: 'demo-0.0.1-SNAPSHOT.jar'
+          package: 'app/demo-0.0.1-SNAPSHOT.jar'  # 👈 path to jar inside "app"
           startup-command: 'java -Dspring.profiles.active=prod -jar demo-0.0.1-SNAPSHOT.jar'
