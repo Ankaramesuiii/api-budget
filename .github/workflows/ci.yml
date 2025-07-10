@@ -10,6 +10,9 @@ jobs:
   test-build-package:
     name: Test with MSSQL
     runs-on: ubuntu-latest
+    permissions:
+      contents: read #This is required for actions/checkout
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -50,11 +53,11 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: prod
 
-      - name: Upload artifact
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: target/*.jar
+          path: '${{ github.workspace }}/target/*.jar'
 
       - name: SonarCloud Analysis with Maven
         run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Ankaramesuiii_api-budget -Dsonar.organization=ankaramesuiii -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ vars.SONAR_TOKEN }}
@@ -75,9 +78,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_169DDD58ECCE4E0E92BDD4D5B3D9A3EF }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9C4E622F948A434D9FAFBDDB17DF513D }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E756CBAD7FFF4FA4AEF08FB61D000792 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_56C5584D1A324EFE87BAEB7C70FA18E3 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B602EB14179D4B64AA9784DEEE2AA825 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8B400E594F47481EAF235FFD617538A7 }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
