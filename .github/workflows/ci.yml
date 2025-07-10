@@ -79,7 +79,7 @@ jobs:
       - name: Debugging - Check paths and permissions
         run: |
           echo "### Current working directory ###"
-          pwd
+          pwd && ls $pwd
           echo -e "\n### Contents of app/ directory ###"
           ls -la app/
           echo -e "\n### Checking /home/site/wwwroot/ existence ###"
@@ -109,4 +109,4 @@ jobs:
           app-name: 'api-budget'
           slot-name: 'Production'
           package: 'app/demo-0.0.1-SNAPSHOT.jar'
-          startup-command: 'java -Dspring.profiles.active=prod -jar /home/site/wwwroot/demo-0.0.1-SNAPSHOT.jar'
+          startup-command: 'java -Dspring.profiles.active=prod -jar ./demo-0.0.1-SNAPSHOT.jar'
