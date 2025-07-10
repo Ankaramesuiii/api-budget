@@ -76,8 +76,25 @@ jobs:
           name: java-app
           path: app
 
-      - name: List built files
-        run: ls -la app/ && ls -la /home/site/wwwroot/
+      - name: Debugging - Check paths and permissions
+        run: |
+          echo "### Current working directory ###"
+          pwd
+          echo -e "\n### Contents of app/ directory ###"
+          ls -la app/
+          echo -e "\n### Checking /home/site/wwwroot/ existence ###"
+          if [ -d "/home/site/wwwroot" ]; then
+            echo "/home/site/wwwroot exists!"
+            echo -e "\n### Contents of /home/site/wwwroot ###"
+            ls -la /home/site/wwwroot/
+          else
+            echo "/home/site/wwwroot does NOT exist!"
+          fi
+          echo -e "\n### Current user info ###"
+          whoami
+          id
+          echo -e "\n### Environment variables ###"
+          env | sort
 
       - name: Login to Azure
         uses: azure/login@v2
