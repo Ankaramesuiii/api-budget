@@ -70,10 +70,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: java-app
-          path: ${{ github.workspace }}
-
-      - name: Rename JAR file
-        run: mv ${{ github.workspace }}/*.jar ${{ github.workspace }}/api-budget.jar
+          path: app
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -83,10 +80,9 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E756CBAD7FFF4FA4AEF08FB61D000792 }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'api-budget'
           slot-name: 'Production'
-          package: ${{ github.workspace }}/api-budget.jar
-          startup-command: 'java -Dspring.profiles.active=prod -jar api-budget.jar'
+          package: 'app/demo-0.0.1-SNAPSHOT.jar'
+          startup-command: 'java -Dspring.profiles.active=prod -jar demo-0.0.1-SNAPSHOT.jar'
