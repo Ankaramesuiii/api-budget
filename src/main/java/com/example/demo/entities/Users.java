@@ -51,7 +51,7 @@ public class Users implements UserDetails, Serializable {
 
     @Override
     public String getUsername() {
-        // In this application, email is used as the username for Spring Security
+        // In this application.properties, email is used as the username for Spring Security
         return email;
     }
 
