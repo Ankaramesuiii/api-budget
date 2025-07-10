@@ -77,7 +77,7 @@ jobs:
           path: app
 
       - name: List built files
-        run: ls -la app/
+        run: ls -la app/ && ls -la /home/site/wwwroot/
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -91,5 +91,5 @@ jobs:
         with:
           app-name: 'api-budget'
           slot-name: 'Production'
-          package: 'app/*.jar'  # This will pick up whatever JAR is built
-          startup-command: 'java -Dspring.profiles.active=prod -jar /home/site/wwwroot/*.jar'
+          package: 'app/demo-0.0.1-SNAPSHOT.jar'
+          startup-command: 'java -Dspring.profiles.active=prod -jar /home/site/wwwroot/demo-0.0.1-SNAPSHOT.jar'
