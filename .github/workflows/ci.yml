@@ -115,6 +115,6 @@ jobs:
           app-name: 'api-budget'
           slot-name: 'Production'
           package: 'app/demo-0.0.1-SNAPSHOT.jar'
-          startup-command: 'java -Dspring.profiles.active=prod -jar /home/site/wwwroot/app.jar '
+          startup-command: 'java -jar /home/site/wwwroot/app.jar '
       - name: Jassen
         run: ls app/
