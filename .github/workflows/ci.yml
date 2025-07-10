@@ -76,6 +76,9 @@ jobs:
           name: java-app
           path: app
 
+      - name: List built files
+        run: ls -la app/
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
