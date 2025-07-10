@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        // Skip authentication for public endpoints
+
         if (isPublicPath(request)) {
             filterChain.doFilter(request, response);
             return;
