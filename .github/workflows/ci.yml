@@ -77,7 +77,7 @@ jobs:
           path: app
 
       - name: Move JAR to root
-        run: mv app/demo-0.0.1-SNAPSHOT.jar demo-0.0.1-SNAPSHOT.jar
+        run: mv app/target/*.jar .
 
       - name: Login to Azure
         uses: azure/login@v2
