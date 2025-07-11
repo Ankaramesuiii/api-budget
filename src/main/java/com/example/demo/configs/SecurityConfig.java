@@ -29,10 +29,10 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    List<String> origins = List.of(
+   /* List<String> origins = List.of(
             "https://icy-meadow-0172b5a03.1.azurestaticapps.net",
             "http://localhost:4200"
-    );
+    );*/
 
     private static final List<String> ALLOWED_METHODS = List.of(
             "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
@@ -50,7 +50,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOriginPatterns(origins);
+        cfg.setAllowedOriginPatterns(List.of("https://icy-meadow-0172b5a03.1.azurestaticapps.net"));
         cfg.setAllowedMethods(ALLOWED_METHODS);
         cfg.setAllowedHeaders(ALLOWED_HEADERS);
         cfg.setAllowCredentials(true);
