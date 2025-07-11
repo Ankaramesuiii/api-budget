@@ -34,6 +34,15 @@ public class SecurityConfig {
             "http://localhost:4200"
     );
 
+    private static final List<String> ALLOWED_METHODS = List.of(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+    );
+
+    // List of allowed headers
+    private static final List<String> ALLOWED_HEADERS = List.of(
+            "Authorization", "Cache-Control", "Content-Type"
+    );
+
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
@@ -42,8 +51,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOriginPatterns(origins);
-        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        cfg.setAllowedHeaders(List.of("*"));
+        cfg.setAllowedMethods(ALLOWED_METHODS);
+        cfg.setAllowedHeaders(ALLOWED_HEADERS);
         cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);
 
