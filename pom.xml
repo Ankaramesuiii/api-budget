@@ -147,7 +147,10 @@
             <artifactId>netty-codec-http2</artifactId>
             <version>4.1.101.Final</version>
         </dependency>
-
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
