@@ -14,7 +14,7 @@ public class CorsConfig {
                 registry.addMapping("/api/**")
                         .allowedOrigins(
                                 "http://localhost:4200",                  // local Angular dev server
-                                "https://your-frontend.azurestaticapps.net"  // prod Angular app
+                                "https://icy-meadow-0172b5a03.1.azurestaticapps.net/"  // prod Angular app
                         )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
