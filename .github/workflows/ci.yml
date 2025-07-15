@@ -76,32 +76,6 @@ jobs:
           name: java-app
           path: app
 
-      - name: Debugging - Check paths and permissions
-        run: |
-          echo "### Current working directory ###"
-          pwd && ls $pwd
-          echo "el fichier mawjoud wel la"
-          if [ -f "$pwd/app/demo-0.0.1-SNAPSHOT.jar" ]; then
-            echo "File app/demo-0.0.1-SNAPSHOT.jar mawjoud!"
-          else
-            echo "File app/demo-0.0.1-SNAPSHOT.jar does mahouch mawjoud!"
-          fi
-          echo -e "\n### Contents of app/ directory ###"
-          ls -la app/
-          echo -e "\n### Checking /home/site/wwwroot/ existence ###"
-          if [ -d "/home/site/wwwroot" ]; then
-            echo "/home/site/wwwroot exists!"
-            echo -e "\n### Contents of /home/site/wwwroot ###"
-            ls -la /home/site/wwwroot/
-          else
-            echo "/home/site/wwwroot does NOT exist!"
-          fi
-          echo -e "\n### Current user info ###"
-          whoami
-          id
-          echo -e "\n### Environment variables ###"
-          env | sort
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -116,5 +90,3 @@ jobs:
           slot-name: 'Production'
           package: 'app/demo-0.0.1-SNAPSHOT.jar'
           startup-command: 'java -Dspring.profiles.active=prod -jar /home/site/wwwroot/app.jar '
-      - name: Jassen
-        run: ls app/
