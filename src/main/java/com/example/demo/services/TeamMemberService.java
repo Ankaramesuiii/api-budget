@@ -25,27 +25,37 @@ public class TeamMemberService {
     public TeamMember getOrCreateMember(
             Map<String, String> row,
             Team team,
-            Map<BudgetType, BigDecimal> perMemberBudgets
+            Map<BudgetType, BigDecimal> perMemberBudgets,
+            boolean isFirstUpload
     ) {
         return teamMemberRepository.findByName(row.get("Nom/Prénom"))
-                .orElseGet(() -> createNewMember(row, team, perMemberBudgets));
+                .orElseGet(() -> createNewMember(row, team, perMemberBudgets, isFirstUpload));
     }
 
     private TeamMember createNewMember(
             Map<String, String> row,
             Team team,
-            Map<BudgetType, BigDecimal> perMemberBudgets
+            Map<BudgetType, BigDecimal> perMemberBudgets,
+            boolean isFirstUpload
     ) {
         TeamMember member = new TeamMember(team, userService.getRandomPost());
         member.setName(row.get("Nom/Prénom"));
         userService.setUserFields(member, row.get("Matricule"), Role.TEAM_MEMBER);
 
-        member.setTrainingBudgetRemaining(perMemberBudgets.get(TRAINING));
-        member.setMissionBudgetRemaining(perMemberBudgets.get(MISSION));
-        member.setOtherBudgetRemaining(perMemberBudgets.get(OTHER));
+        if (isFirstUpload) {
+            member.setTrainingBudgetRemaining(perMemberBudgets.get(TRAINING));
+            member.setMissionBudgetRemaining(perMemberBudgets.get(MISSION));
+            member.setOtherBudgetRemaining(perMemberBudgets.get(OTHER));
+        } else {
+            member.setTrainingBudgetRemaining(BigDecimal.ZERO);
+            member.setMissionBudgetRemaining(BigDecimal.ZERO);
+            member.setOtherBudgetRemaining(BigDecimal.ZERO);
+        }
 
         return teamMemberRepository.save(member);
     }
+
+
 
     public static TeamMemberDTO getTeamMemberDTO(TeamMember teamMember) {
         return new TeamMemberDTO(

@@ -7,12 +7,14 @@ import com.example.demo.exceptions.InvalidTrainingDataException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 
 @Service
 @AllArgsConstructor
@@ -29,10 +31,10 @@ public class TrainingBuilderService {
             Theme theme = resolveTheme(row.get("Thématique"));
 
             Training training = new Training();
+            training.setDuration(parseNombreDeJour(row.get("Nombre de jour")));
             training.setStartDate(parseDate(row.get("Date de début")));
             training.setEndDate(parseDate(row.get("Date de fin")));
             training.setCodeSession(getRequiredValue(row, "Code session"));
-            training.setDuration(parseInt(row.get("Nombre de jour")));
             training.setMode(getRequiredValue(row, "Mode"));
             training.setStatus(getRequiredValue(row, "Statut"));
             training.setPresence(getRequiredValue(row, "Présence"));
@@ -49,6 +51,14 @@ public class TrainingBuilderService {
             return training;
         } catch (Exception e) {
             throw new InvalidTrainingDataException("Failed to create training from row data: " + e.getMessage());
+        }
+    }
+
+    private int parseNombreDeJour(String joursStr) {
+        try {
+            return new BigDecimal(joursStr).intValue();
+        } catch (NumberFormatException | NullPointerException e) {
+            throw new InvalidTrainingDataException("Invalid number format for Nombre de jour: " + joursStr);
         }
     }
 
@@ -69,13 +79,6 @@ public class TrainingBuilderService {
         throw new InvalidTrainingDataException("Invalid date format: " + dateString);
     }
 
-    private int parseInt(String number) {
-        try {
-            return Integer.parseInt(number);
-        } catch (NumberFormatException e) {
-            throw new InvalidTrainingDataException("Invalid number format: " + number);
-        }
-    }
 
     private double parseDouble(String number) {
         try {

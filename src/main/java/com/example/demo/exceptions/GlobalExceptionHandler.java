@@ -94,4 +94,13 @@ public class GlobalExceptionHandler {
         error.put("error", ex.getReason());
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
+
+    @ExceptionHandler(DuplicateTrainingException.class)
+    public ResponseEntity<Object> handleDuplicateTraining(DuplicateTrainingException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("processedRows", 0);
+        body.put("warning", "");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
 }
