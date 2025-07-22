@@ -49,20 +49,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+
         String fullUri = request.getRequestURI();
         String contextPath = request.getContextPath();
         String path = fullUri.substring(contextPath.length());
         log.info("Full URI: {}", fullUri);
         log.info("Context path: {}", contextPath);
         log.info("Matched path: {}", path);
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            response.setHeader("Access-Control-Allow-Origin", "https://icy-meadow-0172b5a03.1.azurestaticapps.net");
-            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
-            response.setHeader("Access-Control-Allow-Headers", "Authorization, Cache-Control, Content-Type");
-            response.setHeader("Access-Control-Allow-Credentials", "true");
-            response.setStatus(HttpServletResponse.SC_OK);
-            return;
-        }
+
 
         if (isPublicPath(request)) {
             filterChain.doFilter(request, response);
@@ -92,7 +86,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private boolean isPublicPath(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return PUBLIC_PATHS.stream().anyMatch(uri::contains);
+        return PUBLIC_PATHS.stream().anyMatch(uri::startsWith);
     }
     
     private String extractJwtToken(HttpServletRequest request) {
