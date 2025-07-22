@@ -63,7 +63,7 @@ public class SecurityConfig {
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/**")
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))        // <-- use the bean above
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // THIS IS THE KEY
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

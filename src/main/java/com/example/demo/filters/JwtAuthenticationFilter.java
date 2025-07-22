@@ -57,15 +57,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("Context path: {}", contextPath);
         log.info("Matched path: {}", path);
 
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            response.setHeader("Access-Control-Allow-Origin", "https://icy-meadow-0172b5a03.1.azurestaticapps.net");
-            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
-            response.setHeader("Access-Control-Allow-Headers", "Authorization, Cache-Control, Content-Type");
-            response.setHeader("Access-Control-Allow-Credentials", "true");
-            response.setStatus(HttpServletResponse.SC_OK);
-            return;
-        }
-
         if (isPublicPath(request)) {
             filterChain.doFilter(request, response);
             return;
