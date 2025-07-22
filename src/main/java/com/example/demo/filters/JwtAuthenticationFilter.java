@@ -181,10 +181,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private boolean hasRole(Authentication authentication, String role) {
         return authentication.getAuthorities().contains(new SimpleGrantedAuthority(role));
     }
-    
+
     private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+        response.setHeader("Access-Control-Allow-Origin", "https://icy-meadow-0172b5a03.1.azurestaticapps.net");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setContentType("text/plain;charset=UTF-8");
         response.setStatus(status);
         response.getWriter().write(message);
         response.getWriter().flush();
     }
+
 }
