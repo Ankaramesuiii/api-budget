@@ -85,7 +85,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private boolean isPublicPath(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return PUBLIC_PATHS.stream().anyMatch(uri::startsWith);
+        return PUBLIC_PATHS.stream().anyMatch(uri::contains);
     }
     
     private String extractJwtToken(HttpServletRequest request) {
