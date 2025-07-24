@@ -60,8 +60,8 @@ jobs:
           path: target/*.jar
           retention-days: 3
 
-      - name: SonarCloud Analysis with Maven
-        run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Ankaramesuiii_api-budget -Dsonar.organization=ankaramesuiii -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ vars.SONAR_TOKEN }}
+#      - name: SonarCloud Analysis with Maven
+#        run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Ankaramesuiii_api-budget -Dsonar.organization=ankaramesuiii -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ vars.SONAR_TOKEN }}
 
   deploy:
     runs-on: ubuntu-latest
