@@ -57,6 +57,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("Context path: {}", contextPath);
         log.info("Matched path: {}", path);
 
+        if (org.springframework.http.HttpMethod.OPTIONS.matches(request.getMethod())) { //
+            log.info("JWT Filter: Skipping authentication for OPTIONS request: {}", request.getRequestURI()); //
+            filterChain.doFilter(request, response); //
+            return; // // Terminate filter execution for OPTIONS requests
+        }
         if (isPublicPath(request)) {
             filterChain.doFilter(request, response);
             return;
