@@ -16,9 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -53,26 +50,15 @@ public class SecurityConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("https://icy-meadow-0172b5a03.1.azurestaticapps.net",
-                        "http://localhost:4200");
+                registry.addMapping("/**") // Apply to all endpoints
+                        .allowedOrigins(origins.toArray(new String[0])) // Use the list
+                        .allowedMethods(ALLOWED_METHODS.toArray(new String[0])) // Allow these methods
+                        .allowedHeaders(ALLOWED_HEADERS.toArray(new String[0])) // Allow these headers
+                        .allowCredentials(true) // Crucial for sending Authorization header
+                        .maxAge(3600); // Cache preflight results for 1 hour
             }
         };
     }
-
-
-   /* @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(origins);
-        cfg.setAllowedMethods(ALLOWED_METHODS);
-        cfg.setAllowedHeaders(ALLOWED_HEADERS);
-        cfg.setAllowCredentials(true);
-        cfg.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", cfg);
-        return source;
-    }*/
 
     @Bean
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
