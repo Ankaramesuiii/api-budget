@@ -37,6 +37,7 @@ public class TrainingService {
     public TrainingImportResult processExcelFile(MultipartFile file, Users user, int year) throws IOException {
 
         Map<BudgetType, Double> budgetsByDirector = pendingBudgetService.getBudgetsByDirectorAndYear(user.getEmail(), year);
+        log.info("zzz {}", budgetsByDirector.toString());
         boolean isFirstUpload = !budgetsByDirector.isEmpty();
 
         List<Map<String, String>> rows = excelService.readExcelFile(file);
@@ -51,6 +52,7 @@ public class TrainingService {
                 ? budgetService.calculatePerMemberBudgets(budgetsByDirector, allMemberNames.size())
                 : Map.of(TRAINING, BigDecimal.ZERO, MISSION, BigDecimal.ZERO, OTHER, BigDecimal.ZERO);
 
+        log.info("zzz Per member budgets: {}", perMemberBudgets);
         List<Training> trainings = processRowsByManager(
                 rows,
                 user,
@@ -109,13 +111,13 @@ public class TrainingService {
         List<Training> trainings = new ArrayList<>();
         Map<String, List<Map<String, String>>> rowsByManager = rows.stream()
                 .collect(Collectors.groupingBy(r -> r.get("Manager")));
-
         for (Map.Entry<String, List<Map<String, String>>> entry : rowsByManager.entrySet()) {
+            log.info("zzz Processing manager: {}", entry.getKey());
             Team team = teamService.getOrCreateTeam(entry.getKey(), (SuperManager) user);
             log.info("Processing team: {}", team.getName());
-
+            List<Map<String, String>> uniqueRows = getUniqueRows(entry);
             if (isFirstUpload) {
-                initializeTeamBudgets(team, entry.getValue().size(), perMemberBudgets, budgetsByDirector, year);
+                initializeTeamBudgets(team, uniqueRows.size(), perMemberBudgets, budgetsByDirector, year);
             } else {
                 if (team.getBudgetByTypeAndYear(TRAINING, year) == null) {
                     for (BudgetType type : new BudgetType[]{BudgetType.TRAINING, BudgetType.MISSION, BudgetType.OTHER}) {
@@ -131,6 +133,21 @@ public class TrainingService {
             }
         }
         return trainings;
+    }
+
+    private List<Map<String, String>> getUniqueRows(Map.Entry<String, List<Map<String, String>>> entry) {
+        // Use the "Nom/Prénom" column as the key
+        // Use the entire row as the value
+        // Keep the first occurrence
+        return entry.getValue().stream()
+                .collect(Collectors.toMap(
+                        row -> row.get("Nom/Prénom"),
+                        row -> row,
+                        (existing, replacement) -> existing
+                ))
+                .values()
+                .stream()
+                .toList();
     }
 
     private void initializeTeamBudgets(
@@ -150,7 +167,9 @@ public class TrainingService {
             double totalBudgetDouble = 0.0;
             double perMemberBudgetDouble = 0.0;
             try {
+                log.info("zzz memberCount: {}", memberCount);
                 totalBudgetDouble = perMemberBudget.multiply(BigDecimal.valueOf(memberCount)).doubleValue();
+                log.info("zzzz totalBudgetDouble: {}.", totalBudgetDouble);
                 perMemberBudgetDouble = perMemberBudget.doubleValue();
             } catch (NullPointerException e) {
                 log.error("NullPointerException computing budget double values for type {}: {}", type, e.getMessage());
@@ -201,6 +220,9 @@ public class TrainingService {
         BigDecimal updatedRemaining = BigDecimal.valueOf(trainingBudget.getRemainingBudget())
                 .subtract(BigDecimal.valueOf(cost));
         log.info("remaining budget after training: {}", updatedRemaining);
+        log.info("Deducting training cost {} from team {}: before={}, after={}",
+                cost, team.getName(), trainingBudget.getRemainingBudget(), updatedRemaining);
+
         budgetService.updateBudget(trainingBudget, updatedRemaining.doubleValue());
 
         return Optional.of(training);
