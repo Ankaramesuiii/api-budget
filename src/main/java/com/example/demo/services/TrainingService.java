@@ -167,9 +167,7 @@ public class TrainingService {
             double totalBudgetDouble = 0.0;
             double perMemberBudgetDouble = 0.0;
             try {
-                log.info("zzz memberCount: {}", memberCount);
                 totalBudgetDouble = perMemberBudget.multiply(BigDecimal.valueOf(memberCount)).doubleValue();
-                log.info("zzzz totalBudgetDouble: {}.", totalBudgetDouble);
                 perMemberBudgetDouble = perMemberBudget.doubleValue();
             } catch (NullPointerException e) {
                 log.error("NullPointerException computing budget double values for type {}: {}", type, e.getMessage());
